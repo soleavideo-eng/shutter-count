@@ -10,6 +10,7 @@ Web app statica browser-only per leggere metadati `.CR3` Canon direttamente nel 
 - drag & drop `.CR3`
 - UI in italiano con risultati principali evidenti
 - debug secondario espandibile
+- form feedback con invio email
 
 ## Stack scelto
 
@@ -61,6 +62,8 @@ Puoi pubblicarla come sito statico su:
 - I moduli ESM e il file `.wasm` sono inclusi localmente nel progetto.
 - Serve un server statico reale: aprire `index.html` direttamente da filesystem non e' consigliato.
 - Se il server non serve bene il `.wasm`, il runtime non parte.
+- Il form feedback usa FormSubmit e invia una mail a `soleavideo@gmail.com`.
+- Al primo invio del form potrebbe essere necessaria la conferma email del servizio.
 - Il parser cerca in modo robusto chiavi come `Model`, `[IFD0] Model`, `[Canon] ShutterCount`, `ShutterCount`, `ExposureCount`.
 
 ## Compatibilità modelli

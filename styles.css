@@ -282,6 +282,92 @@ body {
   word-break: break-word;
 }
 
+.feedback-panel {
+  margin-top: 22px;
+  padding: 24px 22px 22px;
+}
+
+.feedback-header {
+  margin-bottom: 20px;
+}
+
+.feedback-title {
+  margin: 8px 0 10px;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1.15;
+  font-weight: 740;
+}
+
+.feedback-copy {
+  margin: 0;
+  max-width: 780px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.feedback-form {
+  display: grid;
+  gap: 18px;
+}
+
+.feedback-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.field-label {
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.field-input {
+  width: 100%;
+  min-height: 50px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(142, 160, 190, 0.28);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text);
+  font: inherit;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: rgba(23, 73, 154, 0.48);
+  box-shadow: 0 0 0 4px rgba(23, 73, 154, 0.12);
+  background: #ffffff;
+}
+
+.field-textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.feedback-status {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -324,7 +410,8 @@ body {
 
 @media (max-width: 900px) {
   .hero-grid,
-  .results-grid {
+  .results-grid,
+  .feedback-grid {
     grid-template-columns: 1fr;
   }
 

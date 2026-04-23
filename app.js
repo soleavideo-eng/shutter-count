@@ -30,6 +30,7 @@ const LOCAL_WASM_URL = new URL(
   "./vendor/@6over3/zeroperl-ts/dist/esm/zeroperl.wasm",
   window.location.href,
 ).toString();
+const FEEDBACK_ENDPOINT = "https://formsubmit.co/ajax/soleavideo@gmail.com";
 
 const exiftoolModulePromise = import("@uswriting/exiftool");
 
@@ -115,6 +116,98 @@ app.innerHTML = `
         <pre class="debug-output" id="debug-output">Nessun debug disponibile.</pre>
       </div>
     </details>
+
+    <section class="panel feedback-panel">
+      <div class="feedback-header">
+        <div>
+          <p class="eyebrow">FEEDBACK</p>
+          <h2 class="feedback-title">Aiutami a capire se l'app funziona davvero</h2>
+          <p class="feedback-copy">
+            Questo modulo invia una mail a <strong>soleavideo@gmail.com</strong> con il tuo feedback e i dati tecnici
+            dell'analisi corrente. Niente upload del CR3: viene inviato solo il report testuale.
+          </p>
+        </div>
+      </div>
+
+      <form class="feedback-form" id="feedback-form" novalidate>
+        <div class="feedback-grid">
+          <label class="field">
+            <span class="field-label">Nome</span>
+            <input class="field-input" name="tester_name" type="text" placeholder="Facoltativo" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Email</span>
+            <input class="field-input" name="reply_to" type="email" placeholder="Per eventuale risposta" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Modello fotocamera usato</span>
+            <input class="field-input" name="camera_model_user" type="text" placeholder="Es. Canon EOS R6 Mark II" required />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Browser / dispositivo</span>
+            <input class="field-input" name="browser_device" type="text" placeholder="Es. Safari su MacBook Air M2" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Esito del test</span>
+            <select class="field-input" name="test_outcome" required>
+              <option value="">Seleziona</option>
+              <option value="ok_model_and_count">Modello e count corretti</option>
+              <option value="ok_model_missing_count">Modello corretto, count mancante</option>
+              <option value="wrong_model">Modello sbagliato</option>
+              <option value="wrong_count">Count sbagliato</option>
+              <option value="runtime_error">Errore tecnico / runtime</option>
+              <option value="other">Altro</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Il count ti sembra preciso?</span>
+            <select class="field-input" name="count_accuracy" required>
+              <option value="">Seleziona</option>
+              <option value="yes">Sì</option>
+              <option value="no">No</option>
+              <option value="not_sure">Non sono sicuro</option>
+              <option value="not_available">Dato non disponibile</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field field-full">
+          <span class="field-label">Note utili</span>
+          <textarea
+            class="field-input field-textarea"
+            name="feedback_notes"
+            rows="6"
+            placeholder="Scrivi cosa ha funzionato, cosa non ha funzionato, se il count corrisponde, se il modello è corretto, eventuali errori o comportamenti strani."
+            required
+          ></textarea>
+        </label>
+
+        <input type="hidden" name="_subject" value="Feedback SHUTTER COUNT PER CANON EOS R" />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="text" name="_honey" class="hidden-input" tabindex="-1" autocomplete="off" />
+        <input type="hidden" name="app_page" id="feedback-page" />
+        <input type="hidden" name="runtime_origin" id="feedback-runtime-origin" />
+        <input type="hidden" name="analyzed_file" id="feedback-file" />
+        <input type="hidden" name="detected_model" id="feedback-detected-model" />
+        <input type="hidden" name="detected_count" id="feedback-detected-count" />
+        <input type="hidden" name="detected_compatibility" id="feedback-detected-compatibility" />
+        <input type="hidden" name="detected_status" id="feedback-detected-status" />
+        <input type="hidden" name="debug_excerpt" id="feedback-debug" />
+
+        <div class="feedback-actions">
+          <button class="button button-primary" id="feedback-submit" type="submit">Invia feedback</button>
+          <p class="feedback-status" id="feedback-status">
+            Il primo invio potrebbe richiedere la conferma del servizio email se il form non è ancora stato attivato.
+          </p>
+        </div>
+      </form>
+    </section>
   </main>
 `;
 
@@ -132,9 +225,29 @@ const refs = {
   fileValue: document.querySelector("#file-value"),
   debugPanel: document.querySelector("#debug-panel"),
   debugOutput: document.querySelector("#debug-output"),
+  feedbackForm: document.querySelector("#feedback-form"),
+  feedbackSubmit: document.querySelector("#feedback-submit"),
+  feedbackStatus: document.querySelector("#feedback-status"),
+  feedbackPage: document.querySelector("#feedback-page"),
+  feedbackRuntimeOrigin: document.querySelector("#feedback-runtime-origin"),
+  feedbackFile: document.querySelector("#feedback-file"),
+  feedbackDetectedModel: document.querySelector("#feedback-detected-model"),
+  feedbackDetectedCount: document.querySelector("#feedback-detected-count"),
+  feedbackDetectedCompatibility: document.querySelector("#feedback-detected-compatibility"),
+  feedbackDetectedStatus: document.querySelector("#feedback-detected-status"),
+  feedbackDebug: document.querySelector("#feedback-debug"),
 };
 
 let activeToken = 0;
+let lastAnalysisSnapshot = {
+  runtimeOrigin: "moduli locali vendorizzati",
+  file: "Nessun file selezionato",
+  model: "—",
+  count: "—",
+  compatibility: "—",
+  status: "Pronto",
+  debugExcerpt: "Nessun debug disponibile.",
+};
 
 primeRuntime();
 bindEvents();
@@ -191,6 +304,9 @@ function bindEvents() {
     refs.statusValue.className = "status-value is-danger";
     refs.statusNote.textContent = "Trascina un file Canon .CR3 valido.";
   });
+
+  refs.feedbackForm.addEventListener("submit", submitFeedback);
+  syncFeedbackContext();
 }
 
 function clearResults() {
@@ -205,6 +321,16 @@ function clearResults() {
   refs.compatibilityValue.textContent = "—";
   refs.fileValue.textContent = "Nessun file selezionato";
   refs.debugOutput.textContent = "Nessun debug disponibile.";
+  lastAnalysisSnapshot = {
+    ...lastAnalysisSnapshot,
+    file: "Nessun file selezionato",
+    model: "—",
+    count: "—",
+    compatibility: "—",
+    status: "Pronto",
+    debugExcerpt: "Nessun debug disponibile.",
+  };
+  syncFeedbackContext();
 }
 
 async function analyzeFile(file) {
@@ -260,7 +386,18 @@ function applySuccess(info, record, file) {
   refs.statusValue.textContent = info.status;
   refs.statusValue.className = `status-value ${statusClassFor(info)}`.trim();
   refs.statusNote.textContent = buildStatusNote(info);
-  refs.debugOutput.textContent = formatDebugText(file, record, info);
+  const debugText = formatDebugText(file, record, info);
+  refs.debugOutput.textContent = debugText;
+  lastAnalysisSnapshot = {
+    ...lastAnalysisSnapshot,
+    file: `${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+    model: info.model,
+    count: info.count,
+    compatibility: info.compatibility,
+    status: info.status,
+    debugExcerpt: truncateDebug(debugText),
+  };
+  syncFeedbackContext();
 }
 
 function applyError(errorMessage, file, token) {
@@ -275,7 +412,18 @@ function applyError(errorMessage, file, token) {
   refs.statusValue.className = "status-value is-danger";
   refs.statusNote.textContent = errorMessage;
   refs.debugPanel.open = true;
-  refs.debugOutput.textContent = formatDebugText(file, null, null, errorMessage);
+  const debugText = formatDebugText(file, null, null, errorMessage);
+  refs.debugOutput.textContent = debugText;
+  lastAnalysisSnapshot = {
+    ...lastAnalysisSnapshot,
+    file: file ? `${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB` : "Nessun file selezionato",
+    model: "dato non disponibile",
+    count: "dato non disponibile",
+    compatibility: "verifica non completata",
+    status: "Errore di lettura",
+    debugExcerpt: truncateDebug(debugText),
+  };
+  syncFeedbackContext();
 }
 
 function simplifyKey(key) {
@@ -451,4 +599,71 @@ function runtimeFetch(input, init) {
   const requested = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
   const normalized = requested.endsWith("/zeroperl.wasm") || requested === "./zeroperl.wasm";
   return fetch(normalized ? LOCAL_WASM_URL : input, init);
+}
+
+function syncFeedbackContext() {
+  refs.feedbackPage.value = window.location.href;
+  refs.feedbackRuntimeOrigin.value = lastAnalysisSnapshot.runtimeOrigin;
+  refs.feedbackFile.value = lastAnalysisSnapshot.file;
+  refs.feedbackDetectedModel.value = lastAnalysisSnapshot.model;
+  refs.feedbackDetectedCount.value = lastAnalysisSnapshot.count;
+  refs.feedbackDetectedCompatibility.value = lastAnalysisSnapshot.compatibility;
+  refs.feedbackDetectedStatus.value = lastAnalysisSnapshot.status;
+  refs.feedbackDebug.value = lastAnalysisSnapshot.debugExcerpt;
+}
+
+function truncateDebug(text) {
+  return text.length > 4000 ? `${text.slice(0, 4000)}\n\n[debug troncato]` : text;
+}
+
+async function submitFeedback(event) {
+  event.preventDefault();
+
+  if (!refs.feedbackForm.reportValidity()) {
+    return;
+  }
+
+  refs.feedbackSubmit.disabled = true;
+  refs.feedbackStatus.textContent = "Invio in corso…";
+  refs.feedbackStatus.className = "feedback-status";
+
+  const formData = new FormData(refs.feedbackForm);
+  formData.set("runtime_origin", lastAnalysisSnapshot.runtimeOrigin);
+  formData.set("analyzed_file", lastAnalysisSnapshot.file);
+  formData.set("detected_model", lastAnalysisSnapshot.model);
+  formData.set("detected_count", lastAnalysisSnapshot.count);
+  formData.set("detected_compatibility", lastAnalysisSnapshot.compatibility);
+  formData.set("detected_status", lastAnalysisSnapshot.status);
+  formData.set("debug_excerpt", lastAnalysisSnapshot.debugExcerpt);
+  formData.set("app_page", window.location.href);
+  formData.set("browser_user_agent", navigator.userAgent);
+  formData.set("screen_size", `${window.screen.width}x${window.screen.height}`);
+  formData.set("_replyto", formData.get("reply_to") || "");
+
+  try {
+    const response = await fetch(FEEDBACK_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+      body: formData,
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || payload.success === "false") {
+      throw new Error(payload.message || "Invio non riuscito.");
+    }
+
+    refs.feedbackStatus.textContent =
+      "Feedback inviato. Controlla la mail di attivazione del form se questo è il primo invio.";
+    refs.feedbackStatus.className = "feedback-status is-success";
+    refs.feedbackForm.reset();
+    syncFeedbackContext();
+  } catch (error) {
+    refs.feedbackStatus.textContent = `Invio non riuscito: ${stringifyError(error)}`;
+    refs.feedbackStatus.className = "feedback-status is-danger";
+  } finally {
+    refs.feedbackSubmit.disabled = false;
+  }
 }
