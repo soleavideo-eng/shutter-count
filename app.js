@@ -123,8 +123,8 @@ app.innerHTML = `
           <p class="eyebrow">FEEDBACK</p>
           <h2 class="feedback-title">Aiutami a capire se l'app funziona davvero</h2>
           <p class="feedback-copy">
-            Questo modulo invia una mail a <strong>soleavideo@gmail.com</strong> con il tuo feedback e i dati tecnici
-            dell'analisi corrente. Niente upload del CR3: viene inviato solo il report testuale.
+            Invia il tuo feedback insieme ai dati tecnici dell'analisi corrente. Il file CR3 non viene caricato:
+            viene inviato solo un report testuale con il risultato del test.
           </p>
         </div>
       </div>
