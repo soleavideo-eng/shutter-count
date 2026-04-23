@@ -1,0 +1,340 @@
+:root {
+  color-scheme: light;
+  --bg: #eef3f9;
+  --bg-glow: rgba(114, 140, 187, 0.18);
+  --panel: rgba(255, 255, 255, 0.78);
+  --panel-solid: #ffffff;
+  --panel-border: rgba(142, 160, 190, 0.25);
+  --panel-shadow: 0 20px 60px rgba(24, 39, 75, 0.12);
+  --text: #162233;
+  --muted: #5d6c82;
+  --accent: #17499a;
+  --accent-strong: #112747;
+  --accent-soft: #e7f0ff;
+  --success: #16623b;
+  --warning: #875f14;
+  --danger: #8d2a2a;
+  --drop-border: rgba(89, 124, 178, 0.34);
+  --drop-bg: linear-gradient(135deg, rgba(247, 250, 255, 0.98), rgba(234, 242, 255, 0.96));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  background:
+    radial-gradient(circle at top center, var(--bg-glow), transparent 36%),
+    linear-gradient(180deg, #f7f9fd 0%, var(--bg) 100%);
+  color: var(--text);
+}
+
+body {
+  min-height: 100vh;
+}
+
+.page-shell {
+  width: min(1180px, calc(100vw - 40px));
+  margin: 0 auto;
+  padding: 42px 0 56px;
+}
+
+.hero {
+  display: grid;
+  gap: 22px;
+}
+
+.hero-title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 760;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+}
+
+.hero-subtitle {
+  margin: 0;
+  max-width: 760px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+  gap: 22px;
+}
+
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--panel-border);
+  border-radius: 28px;
+  box-shadow: var(--panel-shadow);
+}
+
+.drop-panel {
+  padding: 22px;
+}
+
+.drop-zone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  padding: 34px;
+  text-align: center;
+  border: 2px dashed var(--drop-border);
+  border-radius: 24px;
+  background: var(--drop-bg);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.drop-zone.is-active {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 18px 40px rgba(24, 73, 154, 0.16);
+}
+
+.drop-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 18px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #edf4ff, #dbe9ff);
+  color: var(--accent);
+  font-size: 1.7rem;
+  font-weight: 780;
+  letter-spacing: 0.06em;
+}
+
+.drop-title {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-weight: 730;
+}
+
+.drop-text {
+  margin: 0 auto;
+  max-width: 580px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.drop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  justify-content: center;
+}
+
+.button {
+  appearance: none;
+  border: none;
+  border-radius: 16px;
+  min-height: 48px;
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 680;
+  cursor: pointer;
+  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.button-primary {
+  background: var(--accent-strong);
+  color: #ffffff;
+}
+
+.button-secondary {
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--text);
+  border: 1px solid rgba(142, 160, 190, 0.32);
+}
+
+.status-panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 760;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+}
+
+.status-value {
+  margin: 0;
+  font-size: clamp(1.6rem, 2vw, 2rem);
+  font-weight: 760;
+  line-height: 1.15;
+  color: var(--accent);
+}
+
+.status-note,
+.privacy-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.privacy-note {
+  padding-top: 8px;
+  border-top: 1px solid rgba(142, 160, 190, 0.18);
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.result-card {
+  padding: 22px;
+}
+
+.result-value {
+  margin: 12px 0 0;
+  font-size: clamp(1.24rem, 2vw, 1.92rem);
+  font-weight: 740;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.result-value.subtle {
+  font-size: 1.08rem;
+  font-weight: 620;
+}
+
+.debug-panel {
+  margin-top: 22px;
+  overflow: hidden;
+}
+
+.debug-panel[open] summary {
+  border-bottom: 1px solid rgba(142, 160, 190, 0.18);
+}
+
+.debug-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  list-style: none;
+  cursor: pointer;
+  padding: 20px 22px;
+}
+
+.debug-summary::-webkit-details-marker {
+  display: none;
+}
+
+.debug-caption {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.debug-chevron {
+  color: var(--muted);
+  font-size: 1.4rem;
+  transition: transform 180ms ease;
+}
+
+.debug-panel[open] .debug-chevron {
+  transform: rotate(90deg);
+}
+
+.debug-content {
+  padding: 18px 22px 22px;
+}
+
+.debug-output {
+  margin: 0;
+  padding: 18px;
+  min-height: 220px;
+  overflow: auto;
+  border-radius: 18px;
+  background: #10192a;
+  color: #d7e2f0;
+  border: 1px solid #16253a;
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(142, 160, 190, 0.2);
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.pill strong {
+  color: var(--text);
+}
+
+.helper-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.is-success {
+  color: var(--success);
+}
+
+.is-warning {
+  color: var(--warning);
+}
+
+.is-danger {
+  color: var(--danger);
+}
+
+.hidden-input {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hero-grid,
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-shell {
+    width: min(100vw - 28px, 1180px);
+    padding-top: 28px;
+  }
+
+  .drop-zone {
+    min-height: 260px;
+    padding: 26px;
+  }
+}
