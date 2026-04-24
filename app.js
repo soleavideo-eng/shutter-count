@@ -61,7 +61,6 @@ const translations = {
     compatibility: "COMPATIBILITÀ",
     selectedFile: "FILE SELEZIONATO",
     shutterCountCard: "SHUTTER COUNT",
-    exposureCountCard: "EXPOSURE COUNT",
     noFile: "Nessun file selezionato",
     debug: "DEBUG",
     debugCaption:
@@ -142,14 +141,11 @@ const translations = {
     compatibilityLine: "compatibilità",
     foundModelKeys: "Chiavi modello trovate:",
     foundCountKeys: "Chiavi shutter count trovate:",
-    foundExposureKeys: "Chiavi exposure count trovate:",
     simplifiedMap: "Mappa chiavi semplificate:",
     fullRecord: "Record ExifTool completo:",
     primaryCountSource: "sorgente count principale",
     primaryCountSummary: "COUNT principale derivato da {source}",
-    separateCounts: "Conteggi distinti:",
     shutterCountLine: "ShutterCount",
-    exposureCountLine: "ExposureCount",
     countsMatch: "coincidono",
     countsDiffer: "differiscono",
     none: "nessuna",
@@ -182,7 +178,6 @@ const translations = {
     compatibility: "COMPATIBILITY",
     selectedFile: "SELECTED FILE",
     shutterCountCard: "SHUTTER COUNT",
-    exposureCountCard: "EXPOSURE COUNT",
     noFile: "No file selected",
     debug: "DEBUG",
     debugCaption:
@@ -263,14 +258,11 @@ const translations = {
     compatibilityLine: "compatibility",
     foundModelKeys: "Detected model keys:",
     foundCountKeys: "Detected shutter count keys:",
-    foundExposureKeys: "Detected exposure count keys:",
     simplifiedMap: "Simplified key map:",
     fullRecord: "Full ExifTool record:",
     primaryCountSource: "primary count source",
     primaryCountSummary: "Primary COUNT derived from {source}",
-    separateCounts: "Separate counters:",
     shutterCountLine: "ShutterCount",
-    exposureCountLine: "ExposureCount",
     countsMatch: "match",
     countsDiffer: "differ",
     none: "none",
@@ -357,10 +349,6 @@ app.innerHTML = `
       <article class="panel result-card">
         <p class="eyebrow" id="shutter-count-label">${t("shutterCountCard")}</p>
         <p class="result-value subtle" id="shutter-count-value">—</p>
-      </article>
-      <article class="panel result-card">
-        <p class="eyebrow" id="exposure-count-label">${t("exposureCountCard")}</p>
-        <p class="result-value subtle" id="exposure-count-value">—</p>
       </article>
     </section>
 
@@ -480,7 +468,6 @@ const refs = {
   compatibilityValue: document.querySelector("#compatibility-value"),
   fileValue: document.querySelector("#file-value"),
   shutterCountValue: document.querySelector("#shutter-count-value"),
-  exposureCountValue: document.querySelector("#exposure-count-value"),
   debugPanel: document.querySelector("#debug-panel"),
   debugOutput: document.querySelector("#debug-output"),
   feedbackForm: document.querySelector("#feedback-form"),
@@ -590,7 +577,6 @@ function clearResults() {
   refs.compatibilityValue.textContent = "—";
   refs.fileValue.textContent = t("noFile");
   refs.shutterCountValue.textContent = "—";
-  refs.exposureCountValue.textContent = "—";
   refs.debugOutput.textContent = t("noDebug");
   lastAnalysisSnapshot = {
     ...lastAnalysisSnapshot,
@@ -614,7 +600,6 @@ async function analyzeFile(file) {
   refs.countValue.textContent = t("analyzingCount");
   refs.compatibilityValue.textContent = t("checking");
   refs.shutterCountValue.textContent = t("analyzingCount");
-  refs.exposureCountValue.textContent = t("analyzingCount");
   refs.statusValue.textContent = t("analyzing");
   refs.statusValue.className = "status-value";
   refs.statusNote.textContent = t("analyzingNote");
@@ -659,7 +644,6 @@ function applySuccess(info, record, file) {
   refs.countValue.textContent = info.count;
   refs.compatibilityValue.textContent = info.compatibility;
   refs.shutterCountValue.textContent = info.shutterCount;
-  refs.exposureCountValue.textContent = info.exposureCount;
   refs.statusValue.textContent = info.status;
   refs.statusValue.className = `status-value ${statusClassFor(info)}`.trim();
   refs.statusNote.textContent = buildStatusNote(info);
@@ -688,7 +672,6 @@ function applyError(errorMessage, file, token) {
   refs.countValue.textContent = t("unavailableData");
   refs.compatibilityValue.textContent = t("verificationIncomplete");
   refs.shutterCountValue.textContent = t("unavailableData");
-  refs.exposureCountValue.textContent = t("unavailableData");
   refs.statusValue.textContent = t("readError");
   refs.statusValue.className = "status-value is-danger";
   refs.statusNote.textContent = errorMessage;
@@ -1011,7 +994,6 @@ function applyLanguage() {
   document.querySelector("#compatibility-label").textContent = t("compatibility");
   document.querySelector("#file-label").textContent = t("selectedFile");
   document.querySelector("#shutter-count-label").textContent = t("shutterCountCard");
-  document.querySelector("#exposure-count-label").textContent = t("exposureCountCard");
   document.querySelector("#debug-label").textContent = t("debug");
   document.querySelector("#debug-caption").textContent = t("debugCaption");
   document.querySelector("#feedback-label").textContent = t("feedback");
@@ -1057,7 +1039,6 @@ function applyLanguage() {
     refs.statusNote.textContent = t("readyNote");
     refs.fileValue.textContent = t("noFile");
     refs.shutterCountValue.textContent = "—";
-    refs.exposureCountValue.textContent = "—";
     refs.debugOutput.textContent = t("noDebug");
     refs.feedbackStatus.textContent = t("firstSendNote");
   } else if (currentViewState === "invalidFile") {
@@ -1070,7 +1051,6 @@ function applyLanguage() {
     refs.countValue.textContent = t("analyzingCount");
     refs.compatibilityValue.textContent = t("checking");
     refs.shutterCountValue.textContent = t("analyzingCount");
-    refs.exposureCountValue.textContent = t("analyzingCount");
     refs.debugOutput.textContent = t("analyzing");
   } else if (currentViewState === "error") {
     refs.statusValue.textContent = t("readError");
@@ -1079,7 +1059,6 @@ function applyLanguage() {
     refs.countValue.textContent = t("unavailableData");
     refs.compatibilityValue.textContent = t("verificationIncomplete");
     refs.shutterCountValue.textContent = t("unavailableData");
-    refs.exposureCountValue.textContent = t("unavailableData");
   } else if (currentViewState === "success") {
     refs.statusValue.textContent = lastAnalysisSnapshot.status;
   }
