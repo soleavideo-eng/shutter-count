@@ -99,6 +99,36 @@ const FILE_TYPE_REGISTRY = new Map([
   ["jpg", { brand: "Generic", format: "JPEG", parserId: "jpeg-reference", confidence: "planned" }],
   ["jpeg", { brand: "Generic", format: "JPEG", parserId: "jpeg-reference", confidence: "planned" }],
 ]);
+const SUPPORT_MATRIX = [
+  {
+    brand: "Canon",
+    groups: [
+      { status: "active", models: ["EOS R5", "EOS R6", "EOS R6 Mark II", "EOS R8", "EOS R50"] },
+      { status: "tentative", models: ["EOS R3", "EOS R5 Mark II", "EOS R1", "EOS R6 Mark III", "EOS R50 V"] },
+      { status: "research", models: ["EOS R", "EOS RP", "EOS R7", "EOS R10", "EOS R100"] },
+    ],
+  },
+  {
+    brand: "Nikon",
+    groups: [{ status: "planned", models: ["NEF parser in preparazione"] }],
+  },
+  {
+    brand: "Sony",
+    groups: [{ status: "planned", models: ["ARW / DNG parser in preparazione"] }],
+  },
+  {
+    brand: "Fujifilm",
+    groups: [{ status: "planned", models: ["RAF parser in preparazione"] }],
+  },
+  {
+    brand: "Olympus / OM System",
+    groups: [{ status: "unavailable", models: ["Nessun count RAW affidabile confermato"] }],
+  },
+  {
+    brand: "Panasonic",
+    groups: [{ status: "unavailable", models: ["Nessun shutter count confermato nei RAW RW2"] }],
+  },
+];
 const FILE_PICKER_ACCEPT = Array.from(FILE_TYPE_REGISTRY.keys())
   .flatMap((ext) => [`.${ext}`, `.${ext.toUpperCase()}`])
   .join(",");
@@ -136,6 +166,15 @@ const translations = {
     compatibility: "COMPATIBILITÀ",
     selectedFile: "FILE SELEZIONATO",
     shutterCountCard: "SHUTTER COUNT",
+    supportMatrix: "SUPPORTO MODELLI",
+    supportMatrixTitle: "Compatibilita per marca e modello",
+    supportMatrixCopy:
+      "Panoramica rapida dei parser attivi, dei modelli in verifica e dei formati gia pianificati. Utile prima di fare test o condividere il link.",
+    supportActive: "Attivo",
+    supportTentative: "In verifica",
+    supportPlanned: "Pianificato",
+    supportResearch: "In ricerca",
+    supportUnavailable: "Non disponibile",
     noFile: "Nessun file selezionato",
     debug: "DEBUG",
     debugCaption:
@@ -281,6 +320,15 @@ const translations = {
     compatibility: "COMPATIBILITY",
     selectedFile: "SELECTED FILE",
     shutterCountCard: "SHUTTER COUNT",
+    supportMatrix: "MODEL SUPPORT",
+    supportMatrixTitle: "Brand and model compatibility",
+    supportMatrixCopy:
+      "Quick overview of active parsers, models under verification, and already planned formats. Useful before testing or sharing the app.",
+    supportActive: "Active",
+    supportTentative: "Under review",
+    supportPlanned: "Planned",
+    supportResearch: "Research",
+    supportUnavailable: "Unavailable",
     noFile: "No file selected",
     debug: "DEBUG",
     debugCaption:
@@ -483,6 +531,17 @@ app.innerHTML = `
       </article>
     </section>
 
+    <section class="panel support-panel">
+      <div class="support-header">
+        <div>
+          <p class="eyebrow" id="support-label">${t("supportMatrix")}</p>
+          <h2 class="support-title" id="support-title">${t("supportMatrixTitle")}</h2>
+          <p class="support-copy" id="support-copy">${t("supportMatrixCopy")}</p>
+        </div>
+      </div>
+      <div class="support-grid" id="support-grid"></div>
+    </section>
+
     <details class="panel debug-panel" id="debug-panel">
       <summary class="debug-summary">
         <div>
@@ -634,6 +693,7 @@ let lastErrorMessage = "";
 primeRuntime();
 bindEvents();
 applyLanguage();
+renderSupportMatrix();
 
 async function primeRuntime() {
   try {
@@ -1308,6 +1368,52 @@ function truncateDebug(text) {
   return text.length > 4000 ? `${text.slice(0, 4000)}\n\n${t("debugTruncated")}` : text;
 }
 
+function supportStatusLabel(status) {
+  if (status === "active") {
+    return t("supportActive");
+  }
+  if (status === "tentative") {
+    return t("supportTentative");
+  }
+  if (status === "planned") {
+    return t("supportPlanned");
+  }
+  if (status === "research") {
+    return t("supportResearch");
+  }
+  return t("supportUnavailable");
+}
+
+function renderSupportMatrix() {
+  const container = document.querySelector("#support-grid");
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = SUPPORT_MATRIX.map((entry) => {
+    const groups = entry.groups
+      .map((group) => {
+        const models = group.models
+          .map((model) => `<li class="support-model">${model}</li>`)
+          .join("");
+        return `
+          <div class="support-group">
+            <span class="support-badge is-${group.status}">${supportStatusLabel(group.status)}</span>
+            <ul class="support-model-list">${models}</ul>
+          </div>
+        `;
+      })
+      .join("");
+
+    return `
+      <article class="support-card">
+        <h3 class="support-brand">${entry.brand}</h3>
+        ${groups}
+      </article>
+    `;
+  }).join("");
+}
+
 async function submitFeedback(event) {
   event.preventDefault();
 
@@ -1388,6 +1494,9 @@ function applyLanguage() {
   document.querySelector("#compatibility-label").textContent = t("compatibility");
   document.querySelector("#file-label").textContent = t("selectedFile");
   document.querySelector("#shutter-count-label").textContent = t("shutterCountCard");
+  document.querySelector("#support-label").textContent = t("supportMatrix");
+  document.querySelector("#support-title").textContent = t("supportMatrixTitle");
+  document.querySelector("#support-copy").textContent = t("supportMatrixCopy");
   document.querySelector("#debug-label").textContent = t("debug");
   document.querySelector("#debug-caption").textContent = t("debugCaption");
   document.querySelector("#feedback-label").textContent = t("feedback");
@@ -1468,5 +1577,6 @@ function applyLanguage() {
     refs.runtimeNote.className = "privacy-note";
   }
 
+  renderSupportMatrix();
   syncFeedbackContext();
 }

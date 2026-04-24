@@ -268,6 +268,107 @@ body {
   overflow: hidden;
 }
 
+.support-panel {
+  margin-top: 22px;
+  padding: 24px 22px 22px;
+}
+
+.support-header {
+  margin-bottom: 18px;
+}
+
+.support-title {
+  margin: 8px 0 10px;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1.15;
+  font-weight: 740;
+}
+
+.support-copy {
+  margin: 0;
+  max-width: 780px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.support-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.support-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(142, 160, 190, 0.18);
+}
+
+.support-brand {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  font-weight: 720;
+}
+
+.support-group + .support-group {
+  margin-top: 14px;
+}
+
+.support-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.support-badge.is-active {
+  background: rgba(22, 98, 59, 0.12);
+  color: var(--success);
+}
+
+.support-badge.is-tentative {
+  background: rgba(135, 95, 20, 0.12);
+  color: var(--warning);
+}
+
+.support-badge.is-planned,
+.support-badge.is-research {
+  background: rgba(23, 73, 154, 0.12);
+  color: var(--accent);
+}
+
+.support-badge.is-unavailable {
+  background: rgba(141, 42, 42, 0.12);
+  color: var(--danger);
+}
+
+.support-model-list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.support-model {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(238, 243, 249, 0.95);
+  border: 1px solid rgba(142, 160, 190, 0.16);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 560;
+}
+
 .debug-panel[open] summary {
   border-bottom: 1px solid rgba(142, 160, 190, 0.18);
 }
@@ -452,6 +553,7 @@ body {
 @media (max-width: 900px) {
   .hero-grid,
   .results-grid,
+  .support-grid,
   .feedback-grid {
     grid-template-columns: 1fr;
   }
