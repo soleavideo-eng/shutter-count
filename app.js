@@ -1,4 +1,4 @@
-const APP_TITLE = "SHUTTER COUNT PER CANON EOS R";
+const APP_TITLE = "SHUTTER COUNT CHECKER";
 const TESTED_MODELS = new Set([
   "Canon EOS R5",
   "Canon EOS R6",
@@ -87,6 +87,21 @@ const MODEL_ALIASES = new Map([
 const MODEL_SIMPLE_KEYS = ["model", "cameramodelname"];
 const MAKE_SIMPLE_KEYS = ["make"];
 const SHUTTER_COUNT_SIMPLE_KEYS = ["shuttercount", "shuttercounter"];
+const FILE_TYPE_REGISTRY = new Map([
+  ["cr3", { brand: "Canon", format: "CR3", parserId: "canon-cr3", confidence: "active" }],
+  ["cr2", { brand: "Canon", format: "CR2", parserId: "canon-cr2", confidence: "planned" }],
+  ["nef", { brand: "Nikon", format: "NEF", parserId: "nikon-nef", confidence: "planned" }],
+  ["arw", { brand: "Sony", format: "ARW", parserId: "sony-arw", confidence: "planned" }],
+  ["dng", { brand: "Sony", format: "DNG", parserId: "sony-dng", confidence: "planned" }],
+  ["raf", { brand: "Fujifilm", format: "RAF", parserId: "fujifilm-raf", confidence: "planned" }],
+  ["orf", { brand: "Olympus / OM System", format: "ORF", parserId: "olympus-orf", confidence: "planned" }],
+  ["rw2", { brand: "Panasonic", format: "RW2", parserId: "panasonic-rw2", confidence: "planned" }],
+  ["jpg", { brand: "Generic", format: "JPEG", parserId: "jpeg-reference", confidence: "planned" }],
+  ["jpeg", { brand: "Generic", format: "JPEG", parserId: "jpeg-reference", confidence: "planned" }],
+]);
+const FILE_PICKER_ACCEPT = Array.from(FILE_TYPE_REGISTRY.keys())
+  .flatMap((ext) => [`.${ext}`, `.${ext.toUpperCase()}`])
+  .join(",");
 const LOCAL_WASM_URL = new URL(
   "./vendor/@6over3/zeroperl-ts/dist/esm/zeroperl.wasm",
   window.location.href,
@@ -96,22 +111,22 @@ const DEFAULT_LANG = "it";
 
 const translations = {
   it: {
-    title: "SHUTTER COUNT PER CANON EOS R",
+    title: "SHUTTER COUNT CHECKER",
     subtitle:
-      "Lettura locale dei metadati CR3 Canon direttamente nel browser. Il file resta sul dispositivo dell'utente: nessun upload, nessun server, nessun passaggio esterno dei RAW.",
+      "Lettura locale dei metadati RAW direttamente nel browser. Il file resta sul dispositivo dell'utente: nessun upload, nessun server, nessun passaggio esterno dei file.",
     chooseFile: "Seleziona file",
     clear: "Pulisci",
     formatLabel: "Formato",
-    formatValue: "CR3 Canon",
+    formatValue: "RAW multi-brand",
     privacyLabel: "Privacy",
     privacyValue: "elaborazione nel browser",
-    dropTitle: "Trascina qui un file .CR3",
+    dropTitle: "Trascina qui un file RAW",
     dropText:
-      "Oppure usa il pulsante di selezione. L'analisi parte subito e mostra modello, shutter count, stato di lettura, compatibilità e file selezionato senza aprire il pannello debug.",
+      "Oppure usa il pulsante di selezione. L'analisi parte subito e mostra modello, shutter count, stato di lettura, compatibilità e file selezionato. L'architettura è pronta per Canon, Nikon, Sony, Fujifilm, Olympus / OM System e Panasonic.",
     readingStatus: "STATO LETTURA",
     ready: "Pronto",
     readyNote:
-      "Trascina un file CR3 oppure selezionalo manualmente. ExifTool gira direttamente nel browser.",
+      "Trascina un file RAW oppure selezionalo manualmente. ExifTool gira direttamente nel browser.",
     runtimeLoading: "Libreria metadata in caricamento…",
     runtimeReady: "Runtime ExifTool WASM pronto. Moduli e WebAssembly sono serviti localmente.",
     runtimeUnavailable:
@@ -124,18 +139,18 @@ const translations = {
     noFile: "Nessun file selezionato",
     debug: "DEBUG",
     debugCaption:
-      "Area secondaria con chiavi rilevate davvero, mappa semplificata e output ExifTool per troubleshooting.",
+      "Area secondaria con chiavi rilevate davvero, routing parser e output ExifTool per troubleshooting.",
     noDebug: "Nessun debug disponibile.",
     feedback: "FEEDBACK",
     feedbackTitle: "Aiutami a capire se l'app funziona davvero",
     feedbackCopy:
-      "Invia il tuo feedback insieme ai dati tecnici dell'analisi corrente. Il file CR3 non viene caricato: viene inviato solo un report testuale con il risultato del test.",
+      "Invia il tuo feedback insieme ai dati tecnici dell'analisi corrente. Il file RAW non viene caricato: viene inviato solo un report testuale con il risultato del test.",
     testerName: "Nome",
     testerNamePlaceholder: "Facoltativo",
     replyEmail: "Email",
     replyEmailPlaceholder: "Per eventuale risposta",
     userCameraModel: "Modello fotocamera usato",
-    userCameraModelPlaceholder: "Es. Canon EOS R6 Mark II",
+    userCameraModelPlaceholder: "Es. Canon EOS R6 Mark II, Nikon Z8, Sony A7 IV",
     browserDevice: "Browser / dispositivo",
     browserDevicePlaceholder: "Es. Safari su MacBook Air M2",
     testOutcome: "Esito del test",
@@ -162,13 +177,19 @@ const translations = {
     sent: "Feedback inviato. Controlla la mail di attivazione del form se questo è il primo invio.",
     sendFailed: "Invio non riuscito",
     invalidFile: "File non valido",
-    invalidFileNote: "Trascina un file Canon .CR3 valido.",
+    invalidFileNote: "Trascina un RAW supportato o un file di riferimento valido.",
     analyzing: "Analisi in corso…",
     analyzingCount: "Analisi in corso…",
     checking: "Verifica in corso…",
     analyzingNote:
-      "Lettura dei metadati con ExifTool WebAssembly e ricerca robusta di modello e shutter count.",
-    invalidCr3: "Il file selezionato non è un file .CR3.",
+      "Lettura dei metadati con ExifTool WebAssembly e instradamento al parser giusto per formato e marca.",
+    invalidCr3: "Il file selezionato non è in un formato riconosciuto dall'app.",
+    fileTypeLine: "tipo file",
+    parserLine: "parser",
+    parserConfidenceLine: "stato parser",
+    parserPlannedStatus: "Parser non ancora attivo",
+    parserPlannedNote:
+      "Formato riconosciuto: {brand} {format}. L'architettura multi-brand e' pronta, ma questo parser non e' ancora attivo in questa build.",
     unavailableData: "dato non disponibile",
     verificationIncomplete: "verifica non completata",
     readError: "Errore di lettura",
@@ -177,6 +198,7 @@ const translations = {
     compatibilitySupported: "offset verificato",
     compatibilityTentative: "offset non verificato",
     compatibilityUnsupported: "modello non supportato",
+    compatibilityPlanned: "parser pianificato",
     compatibilityUntestedR: "modello Canon R non mappato",
     compatibilityOutsideR: "modello fuori serie R",
     partialRead: "Lettura completata con dati parziali",
@@ -196,7 +218,7 @@ const translations = {
     imageCountModelNote:
       "Modello rilevato: {model}. Offset {offset} letto come uint16. Potrebbe rappresentare ImageCount e non il lifetime shutter count; può azzerarsi dopo una formattazione.",
     unsupportedRModelNote:
-      "Modello rilevato: {model}. Questo corpo Canon EOS R non è ancora supportato. Se vuoi, invia un file campione per la ricerca.",
+      "Modello rilevato: {model}. Questo modello non e' ancora supportato in questa build. Se vuoi, invia un file campione per la ricerca.",
     unexpectedOffsetValue:
       "Impossibile leggere lo shutter count: valore inatteso all'offset {offset}. Byte raw: {bytes}.",
     missingOffsetBytes:
@@ -204,7 +226,7 @@ const translations = {
     tentativeCountLabel:
       "Shutter count (offset non verificato): {count} — risultato da confermare.",
     outsideRModelNote:
-      "Modello rilevato: {model}. Il file non appartiene alla serie Canon EOS R riconosciuta dall'app.",
+      "Modello rilevato: {model}. Il parser attivo di questa build non ha una mappatura dedicata per questo file.",
     runtimeOrigin: "Origine runtime: moduli locali vendorizzati",
     runtimeLabel: "Runtime: ExifTool WebAssembly in browser",
     fileLine: "File",
@@ -235,21 +257,21 @@ const translations = {
     debugTruncated: "[debug troncato]",
   },
   en: {
-    title: "SHUTTER COUNT FOR CANON EOS R",
+    title: "SHUTTER COUNT CHECKER",
     subtitle:
-      "Local reading of Canon CR3 metadata directly in the browser. The file stays on the user's device: no upload, no server, no external RAW transfer.",
+      "Local reading of RAW metadata directly in the browser. The file stays on the user's device: no upload, no server, no external file transfer.",
     chooseFile: "Choose file",
     clear: "Clear",
     formatLabel: "Format",
-    formatValue: "Canon CR3",
+    formatValue: "Multi-brand RAW",
     privacyLabel: "Privacy",
     privacyValue: "processed in browser",
-    dropTitle: "Drag a .CR3 file here",
+    dropTitle: "Drag a RAW file here",
     dropText:
-      "Or use the file picker. Analysis starts immediately and shows model, shutter count, read status, compatibility, and selected file without opening the debug panel.",
+      "Or use the file picker. Analysis starts immediately and shows model, shutter count, read status, compatibility, and selected file. The architecture is ready for Canon, Nikon, Sony, Fujifilm, Olympus / OM System and Panasonic.",
     readingStatus: "READ STATUS",
     ready: "Ready",
-    readyNote: "Drag a CR3 file or choose it manually. ExifTool runs directly in the browser.",
+    readyNote: "Drag a RAW file or choose it manually. ExifTool runs directly in the browser.",
     runtimeLoading: "Metadata runtime loading…",
     runtimeReady: "ExifTool WASM runtime ready. Modules and WebAssembly are served locally.",
     runtimeUnavailable:
@@ -262,18 +284,18 @@ const translations = {
     noFile: "No file selected",
     debug: "DEBUG",
     debugCaption:
-      "Secondary area with the actual detected keys, simplified key map, and ExifTool output for troubleshooting.",
+      "Secondary area with the actual detected keys, parser routing, and ExifTool output for troubleshooting.",
     noDebug: "No debug data available.",
     feedback: "FEEDBACK",
     feedbackTitle: "Help me understand whether the app really works",
     feedbackCopy:
-      "Send your feedback together with the current analysis data. The CR3 file is not uploaded: only a text report with the test result is sent.",
+      "Send your feedback together with the current analysis data. The RAW file is not uploaded: only a text report with the test result is sent.",
     testerName: "Name",
     testerNamePlaceholder: "Optional",
     replyEmail: "Email",
     replyEmailPlaceholder: "For a possible reply",
     userCameraModel: "Camera model used",
-    userCameraModelPlaceholder: "E.g. Canon EOS R6 Mark II",
+    userCameraModelPlaceholder: "E.g. Canon EOS R6 Mark II, Nikon Z8, Sony A7 IV",
     browserDevice: "Browser / device",
     browserDevicePlaceholder: "E.g. Safari on MacBook Air M2",
     testOutcome: "Test outcome",
@@ -300,13 +322,19 @@ const translations = {
     sent: "Feedback sent. Check the activation email for the form if this is the first submission.",
     sendFailed: "Sending failed",
     invalidFile: "Invalid file",
-    invalidFileNote: "Drag a valid Canon .CR3 file.",
+    invalidFileNote: "Drag a supported RAW file or a valid reference file.",
     analyzing: "Analyzing…",
     analyzingCount: "Analyzing…",
     checking: "Checking…",
     analyzingNote:
-      "Reading metadata with ExifTool WebAssembly and performing a robust search for model and shutter count.",
-    invalidCr3: "The selected file is not a .CR3 file.",
+      "Reading metadata with ExifTool WebAssembly and routing the file to the right brand/format parser.",
+    invalidCr3: "The selected file format is not recognized by the app.",
+    fileTypeLine: "file type",
+    parserLine: "parser",
+    parserConfidenceLine: "parser state",
+    parserPlannedStatus: "Parser not active yet",
+    parserPlannedNote:
+      "Recognized format: {brand} {format}. The multi-brand architecture is ready, but this parser is not active in this build yet.",
     unavailableData: "data not available",
     verificationIncomplete: "verification not completed",
     readError: "Read error",
@@ -315,6 +343,7 @@ const translations = {
     compatibilitySupported: "verified offset",
     compatibilityTentative: "unverified offset",
     compatibilityUnsupported: "model not supported",
+    compatibilityPlanned: "planned parser",
     compatibilityUntestedR: "Canon R model not mapped",
     compatibilityOutsideR: "model outside R series",
     partialRead: "Read completed with partial data",
@@ -334,7 +363,7 @@ const translations = {
     imageCountModelNote:
       "Detected model: {model}. Offset {offset} is read as uint16. It may represent ImageCount rather than lifetime shutter count and may reset after a card format.",
     unsupportedRModelNote:
-      "Detected model: {model}. This Canon EOS R body is not supported yet. Please share a sample file for research.",
+      "Detected model: {model}. This model is not supported in this build yet. Please share a sample file for research.",
     unexpectedOffsetValue:
       "Could not read shutter count: unexpected value at offset {offset}. Raw bytes: {bytes}.",
     missingOffsetBytes:
@@ -342,7 +371,7 @@ const translations = {
     tentativeCountLabel:
       "Shutter count (unverified offset): {count} — please confirm this result.",
     outsideRModelNote:
-      "Detected model: {model}. The file does not belong to the Canon EOS R series recognized by the app.",
+      "Detected model: {model}. The active parser in this build does not have a dedicated mapping for this file.",
     runtimeOrigin: "Runtime source: vendored local modules",
     runtimeLabel: "Runtime: ExifTool WebAssembly in browser",
     fileLine: "File",
@@ -419,7 +448,7 @@ app.innerHTML = `
               </div>
             </div>
           </div>
-          <input class="hidden-input" id="file-input" type="file" accept=".cr3,.CR3" />
+          <input class="hidden-input" id="file-input" type="file" accept="${FILE_PICKER_ACCEPT}" />
         </section>
 
         <aside class="panel status-panel">
@@ -535,7 +564,7 @@ app.innerHTML = `
           ></textarea>
         </label>
 
-        <input type="hidden" name="_subject" value="Feedback SHUTTER COUNT PER CANON EOS R" />
+        <input type="hidden" name="_subject" value="Feedback SHUTTER COUNT CHECKER" />
         <input type="hidden" name="_template" value="table" />
         <input type="hidden" name="_captcha" value="false" />
         <input type="text" name="_honey" class="hidden-input" tabindex="-1" autocomplete="off" />
@@ -648,9 +677,7 @@ function bindEvents() {
   refs.dropZone.addEventListener("drop", (event) => {
     event.preventDefault();
     refs.dropZone.classList.remove("is-active");
-    const file = [...(event.dataTransfer?.files ?? [])].find(
-      (item) => item.name.toLowerCase().endsWith(".cr3"),
-    );
+    const file = [...(event.dataTransfer?.files ?? [])].find((item) => getFileSpec(item));
 
     if (file) {
       analyzeFile(file);
@@ -695,6 +722,7 @@ function clearResults() {
 
 async function analyzeFile(file) {
   const token = ++activeToken;
+  const fileSpec = getFileSpec(file);
 
   currentViewState = "analyzing";
   refs.fileValue.textContent = `${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
@@ -707,7 +735,7 @@ async function analyzeFile(file) {
   refs.statusNote.textContent = t("analyzingNote");
   refs.debugOutput.textContent = t("analyzing");
 
-  if (!file.name.toLowerCase().endsWith(".cr3")) {
+  if (!fileSpec) {
     applyError(t("invalidCr3"), file, token);
     return;
   }
@@ -733,7 +761,7 @@ async function analyzeFile(file) {
       throw new Error("Record JSON non valido.");
     }
 
-    const info = extractCameraInfo(record);
+    const info = routeAnalysisByParser(record, fileSpec);
     applySuccess(info, record, file);
   } catch (error) {
     applyError(stringifyError(error), file, token);
@@ -842,6 +870,17 @@ function collectSources(simpleRecord, keys) {
 function pickFirstValue(fields) {
   const found = fields.find((field) => field.value !== null && field.value !== "");
   return found?.value;
+}
+
+function getFileExtension(fileName) {
+  const parts = String(fileName).toLowerCase().split(".");
+  return parts.length > 1 ? parts.pop() : "";
+}
+
+function getFileSpec(file) {
+  const extension = getFileExtension(file?.name ?? "");
+  const spec = FILE_TYPE_REGISTRY.get(extension);
+  return spec ? { extension, ...spec } : null;
 }
 
 function formatOffset(offset) {
@@ -1013,6 +1052,50 @@ function resolveRoutedCount(record, model, rawShutterCount) {
   };
 }
 
+function routeAnalysisByParser(record, fileSpec) {
+  if (fileSpec.parserId === "canon-cr3") {
+    const info = extractCameraInfo(record);
+    return {
+      ...info,
+      fileSpec,
+    };
+  }
+
+  return extractPlannedParserInfo(record, fileSpec);
+}
+
+function extractPlannedParserInfo(record, fileSpec) {
+  const simpleRecord = buildSimpleRecord(record);
+  const modelSources = collectSources(simpleRecord, MODEL_SIMPLE_KEYS);
+  const makeSources = collectSources(simpleRecord, MAKE_SIMPLE_KEYS);
+  const rawModel = pickFirstValue(modelSources);
+  const rawMake = pickFirstValue(makeSources);
+  const modelCandidate =
+    rawModel == null || rawModel === ""
+      ? rawMake == null || rawMake === ""
+        ? `${fileSpec.brand} ${fileSpec.format}`
+        : String(rawMake)
+      : String(rawModel);
+
+  return {
+    model: normalizeModelName(modelCandidate),
+    rawModel: modelCandidate,
+    count: t("unavailableData"),
+    shutterCount: t("unavailableData"),
+    primaryCountSource: fileSpec.parserId,
+    compatibility: t("compatibilityPlanned"),
+    status: t("parserPlannedStatus"),
+    isRSeries: false,
+    isTested: false,
+    routed: null,
+    modelSources,
+    countSources: [],
+    shutterCountSources: [],
+    simpleRecord,
+    fileSpec,
+  };
+}
+
 function extractCameraInfo(record) {
   const simpleRecord = buildSimpleRecord(record);
   const modelSources = collectSources(simpleRecord, MODEL_SIMPLE_KEYS);
@@ -1085,6 +1168,10 @@ function buildStatusNote(info) {
     return t("noExplicitModel");
   }
 
+  if (info.fileSpec?.confidence === "planned") {
+    return t("parserPlannedNote", { brand: info.fileSpec.brand, format: info.fileSpec.format });
+  }
+
   if (info.routed?.mode === "supported") {
     return t("supportedModelNote", { model: info.rawModel, offset: info.routed.offsetHex });
   }
@@ -1154,6 +1241,9 @@ function formatDebugText(file, record, info, errorMessage = null) {
     t("modelEvaluation"),
     `- ${t("normalizedModel")}: ${info.model}`,
     `- ${t("rawModel")}: ${info.rawModel ?? "n/d"}`,
+    `- ${t("fileTypeLine")}: ${info.fileSpec ? `${info.fileSpec.brand} ${info.fileSpec.format}` : "n/d"}`,
+    `- ${t("parserLine")}: ${info.fileSpec?.parserId ?? "n/d"}`,
+    `- ${t("parserConfidenceLine")}: ${info.fileSpec?.confidence ?? "n/d"}`,
     `- ${t("rSeries")}: ${info.isRSeries ? t("yesShort") : t("noShort")}`,
     `- ${t("testedModel")}: ${info.isTested ? t("yesShort") : t("noShort")}`,
     `- ${t("compatibilityLine")}: ${info.compatibility}`,
