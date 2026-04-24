@@ -1,11 +1,42 @@
 const APP_TITLE = "SHUTTER COUNT PER CANON EOS R";
-const TESTED_MODELS = new Set(["Canon EOS R6 Mark II", "Canon EOS R8"]);
+const TESTED_MODELS = new Set([
+  "Canon EOS R5",
+  "Canon EOS R6",
+  "Canon EOS R6 Mark II",
+  "Canon EOS R8",
+  "Canon EOS R50",
+]);
+
+const MODEL_ROUTING = new Map([
+  ["Canon EOS R5", { tier: 1, offset: 0x0af1, width: 4, kind: "lifetime" }],
+  ["Canon EOS R6", { tier: 1, offset: 0x0af1, width: 4, kind: "lifetime" }],
+  ["Canon EOS R6 Mark II", { tier: 1, offset: 0x0d29, width: 4, kind: "lifetime" }],
+  ["Canon EOS R8", { tier: 1, offset: 0x0d29, width: 4, kind: "lifetime" }],
+  ["Canon EOS R50", { tier: 1, offset: 0x0d29, width: 4, kind: "lifetime" }],
+  ["Canon EOS R3", { tier: 2, offset: 0x0af1, width: 4, kind: "lifetime" }],
+  ["Canon EOS R5 Mark II", { tier: 2, offset: 0x069c, width: 4, kind: "lifetime" }],
+  ["Canon EOS R1", { tier: 2, offset: 0x086d, width: 2, kind: "imageCount" }],
+  ["Canon EOS R6 Mark III", { tier: 2, offset: 0x086d, width: 2, kind: "imageCount" }],
+  ["Canon EOS R50 V", { tier: 2, offset: 0x086d, width: 2, kind: "imageCount" }],
+]);
+
+const UNSUPPORTED_MODELS = new Set([
+  "Canon EOS R",
+  "Canon EOS RP",
+  "Canon EOS R7",
+  "Canon EOS R10",
+  "Canon EOS R100",
+]);
 
 const MODEL_ALIASES = new Map([
   ["canon eos r", "Canon EOS R"],
   ["canon eos rp", "Canon EOS RP"],
   ["canon eos r3", "Canon EOS R3"],
   ["canon eos r5", "Canon EOS R5"],
+  ["canon eos r5 mark ii", "Canon EOS R5 Mark II"],
+  ["canon eos r5 mk ii", "Canon EOS R5 Mark II"],
+  ["canon eos r5m2", "Canon EOS R5 Mark II"],
+  ["canon eos r5 m2", "Canon EOS R5 Mark II"],
   ["canon eos r5 c", "Canon EOS R5 C"],
   ["canon eos r6", "Canon EOS R6"],
   ["canon eos r6 mark ii", "Canon EOS R6 Mark II"],
@@ -15,18 +46,47 @@ const MODEL_ALIASES = new Map([
   ["canon eos r6mkii", "Canon EOS R6 Mark II"],
   ["canon eos r6 mkii", "Canon EOS R6 Mark II"],
   ["canon eos r6 ii", "Canon EOS R6 Mark II"],
+  ["canon eos r6 mark iii", "Canon EOS R6 Mark III"],
+  ["canon eos r6 mk iii", "Canon EOS R6 Mark III"],
+  ["canon eos r6m3", "Canon EOS R6 Mark III"],
+  ["canon eos r6 m3", "Canon EOS R6 Mark III"],
+  ["canon eos r6mkiii", "Canon EOS R6 Mark III"],
+  ["canon eos r6 mkiii", "Canon EOS R6 Mark III"],
+  ["canon eos r6 iii", "Canon EOS R6 Mark III"],
   ["canon eos r7", "Canon EOS R7"],
   ["canon eos r8", "Canon EOS R8"],
   ["canon eos r10", "Canon EOS R10"],
+  ["canon eos r1", "Canon EOS R1"],
   ["canon eos r50", "Canon EOS R50"],
   ["canon eos r50 v", "Canon EOS R50 V"],
   ["canon eos r100", "Canon EOS R100"],
   ["canon eos ra", "Canon EOS Ra"],
+  ["eos r", "Canon EOS R"],
+  ["eos rp", "Canon EOS RP"],
+  ["eos r3", "Canon EOS R3"],
+  ["eos r5", "Canon EOS R5"],
+  ["eos r5 mark ii", "Canon EOS R5 Mark II"],
+  ["eos r5 mk ii", "Canon EOS R5 Mark II"],
+  ["eos r5m2", "Canon EOS R5 Mark II"],
+  ["eos r6", "Canon EOS R6"],
+  ["eos r6 mark ii", "Canon EOS R6 Mark II"],
+  ["eos r6 mk ii", "Canon EOS R6 Mark II"],
+  ["eos r6m2", "Canon EOS R6 Mark II"],
+  ["eos r6 mark iii", "Canon EOS R6 Mark III"],
+  ["eos r6 mk iii", "Canon EOS R6 Mark III"],
+  ["eos r6m3", "Canon EOS R6 Mark III"],
+  ["eos r7", "Canon EOS R7"],
+  ["eos r8", "Canon EOS R8"],
+  ["eos r10", "Canon EOS R10"],
+  ["eos r50", "Canon EOS R50"],
+  ["eos r50 v", "Canon EOS R50 V"],
+  ["eos r100", "Canon EOS R100"],
+  ["eos r1", "Canon EOS R1"],
 ]);
 
 const MODEL_SIMPLE_KEYS = ["model", "cameramodelname"];
+const MAKE_SIMPLE_KEYS = ["make"];
 const SHUTTER_COUNT_SIMPLE_KEYS = ["shuttercount", "shuttercounter"];
-const EXPOSURE_COUNT_SIMPLE_KEYS = ["exposurecount", "actuationcount"];
 const LOCAL_WASM_URL = new URL(
   "./vendor/@6over3/zeroperl-ts/dist/esm/zeroperl.wasm",
   window.location.href,
@@ -114,17 +174,35 @@ const translations = {
     readError: "Errore di lettura",
     modelNotDetected: "Modello non rilevato",
     compatibilityNotDetected: "modello non rilevato",
-    compatibilityTested: "modello testato",
-    compatibilityUntestedR: "modello Canon R non testato",
+    compatibilitySupported: "offset verificato",
+    compatibilityTentative: "offset non verificato",
+    compatibilityUnsupported: "modello non supportato",
+    compatibilityUntestedR: "modello Canon R non mappato",
     compatibilityOutsideR: "modello fuori serie R",
     partialRead: "Lettura completata con dati parziali",
     readCompletedModelMissing: "Lettura completata con modello non rilevato",
     readCompleted: "Lettura completata",
+    readCompletedWithWarning: "Lettura completata con avviso",
+    modelUnsupportedStatus: "Modello non supportato",
+    offsetReadError: "Errore lettura offset",
     noExplicitModel:
       "Nessun modello esplicito trovato. Il parser ha comunque controllato chiavi semplificate e gruppi ExifTool.",
-    testedModelNote: "Modello rilevato: {model}. Questo modello è già stato marcato come testato.",
-    untestedRModelNote:
-      "Modello rilevato: {model}. Fa parte della serie Canon EOS R ma non è ancora marcato come testato.",
+    supportedModelNote:
+      "Modello rilevato: {model}. Offset {offset} verificato. Valore letto dal blocco CameraInfo.",
+    supportedFallbackNote:
+      "Modello rilevato: {model}. Offset {offset} previsto per questo corpo, ma in questo file il routing byte non è leggibile in modo affidabile. Mostro il valore ExifTool come fallback.",
+    tentativeModelNote:
+      "Modello rilevato: {model}. Offset {offset} non verificato indipendentemente: il risultato potrebbe essere impreciso e va confermato.",
+    imageCountModelNote:
+      "Modello rilevato: {model}. Offset {offset} letto come uint16. Potrebbe rappresentare ImageCount e non il lifetime shutter count; può azzerarsi dopo una formattazione.",
+    unsupportedRModelNote:
+      "Modello rilevato: {model}. Questo corpo Canon EOS R non è ancora supportato. Se vuoi, invia un file campione per la ricerca.",
+    unexpectedOffsetValue:
+      "Impossibile leggere lo shutter count: valore inatteso all'offset {offset}. Byte raw: {bytes}.",
+    missingOffsetBytes:
+      "Impossibile leggere lo shutter count: byte mancanti all'offset {offset}. Byte raw: {bytes}.",
+    tentativeCountLabel:
+      "Shutter count (offset non verificato): {count} — risultato da confermare.",
     outsideRModelNote:
       "Modello rilevato: {model}. Il file non appartiene alla serie Canon EOS R riconosciuta dall'app.",
     runtimeOrigin: "Origine runtime: moduli locali vendorizzati",
@@ -141,13 +219,16 @@ const translations = {
     compatibilityLine: "compatibilità",
     foundModelKeys: "Chiavi modello trovate:",
     foundCountKeys: "Chiavi shutter count trovate:",
+    routingLine: "routing offset",
+    routingSource: "sorgente routing",
+    routingBytes: "byte letti",
+    routingWarning: "avviso routing",
+    routingFallback: "fallback ExifTool",
     simplifiedMap: "Mappa chiavi semplificate:",
     fullRecord: "Record ExifTool completo:",
     primaryCountSource: "sorgente count principale",
     primaryCountSummary: "COUNT principale derivato da {source}",
     shutterCountLine: "ShutterCount",
-    countsMatch: "coincidono",
-    countsDiffer: "differiscono",
     none: "nessuna",
     yesShort: "si",
     noShort: "no",
@@ -231,17 +312,35 @@ const translations = {
     readError: "Read error",
     modelNotDetected: "Model not detected",
     compatibilityNotDetected: "model not detected",
-    compatibilityTested: "tested model",
-    compatibilityUntestedR: "untested Canon R model",
+    compatibilitySupported: "verified offset",
+    compatibilityTentative: "unverified offset",
+    compatibilityUnsupported: "model not supported",
+    compatibilityUntestedR: "Canon R model not mapped",
     compatibilityOutsideR: "model outside R series",
     partialRead: "Read completed with partial data",
     readCompletedModelMissing: "Read completed with model not detected",
     readCompleted: "Read completed",
+    readCompletedWithWarning: "Read completed with warning",
+    modelUnsupportedStatus: "Model not supported",
+    offsetReadError: "Offset read error",
     noExplicitModel:
       "No explicit model was found. The parser still checked simplified keys and ExifTool groups.",
-    testedModelNote: "Detected model: {model}. This model is already marked as tested.",
-    untestedRModelNote:
-      "Detected model: {model}. It belongs to the Canon EOS R series but is not marked as tested yet.",
+    supportedModelNote:
+      "Detected model: {model}. Offset {offset} is verified for this body. Value read from the CameraInfo block.",
+    supportedFallbackNote:
+      "Detected model: {model}. Offset {offset} is expected for this body, but byte routing is not readable reliably in this file. Showing the ExifTool value as fallback.",
+    tentativeModelNote:
+      "Detected model: {model}. Offset {offset} is not independently verified: the result may be inaccurate and should be confirmed.",
+    imageCountModelNote:
+      "Detected model: {model}. Offset {offset} is read as uint16. It may represent ImageCount rather than lifetime shutter count and may reset after a card format.",
+    unsupportedRModelNote:
+      "Detected model: {model}. This Canon EOS R body is not supported yet. Please share a sample file for research.",
+    unexpectedOffsetValue:
+      "Could not read shutter count: unexpected value at offset {offset}. Raw bytes: {bytes}.",
+    missingOffsetBytes:
+      "Could not read shutter count: missing bytes at offset {offset}. Raw bytes: {bytes}.",
+    tentativeCountLabel:
+      "Shutter count (unverified offset): {count} — please confirm this result.",
     outsideRModelNote:
       "Detected model: {model}. The file does not belong to the Canon EOS R series recognized by the app.",
     runtimeOrigin: "Runtime source: vendored local modules",
@@ -258,13 +357,16 @@ const translations = {
     compatibilityLine: "compatibility",
     foundModelKeys: "Detected model keys:",
     foundCountKeys: "Detected shutter count keys:",
+    routingLine: "offset routing",
+    routingSource: "routing source",
+    routingBytes: "bytes read",
+    routingWarning: "routing warning",
+    routingFallback: "ExifTool fallback",
     simplifiedMap: "Simplified key map:",
     fullRecord: "Full ExifTool record:",
     primaryCountSource: "primary count source",
     primaryCountSummary: "Primary COUNT derived from {source}",
     shutterCountLine: "ShutterCount",
-    countsMatch: "match",
-    countsDiffer: "differ",
     none: "none",
     yesShort: "yes",
     noShort: "no",
@@ -613,7 +715,7 @@ async function analyzeFile(file) {
   try {
     const { parseMetadata } = await exiftoolModulePromise;
     const result = await parseMetadata(file, {
-      args: ["-j", "-G", "-n"],
+      args: ["-j", "-G", "-n", "-ee3", "-u", "-U", "-api", "RequestAll=3"],
       fetch: runtimeFetch,
       transform: (data) => JSON.parse(data),
     });
@@ -716,7 +818,17 @@ function normalizeModelName(model) {
   }
 
   const clean = String(model).trim().replace(/\s+/g, " ");
-  return MODEL_ALIASES.get(clean.toLowerCase()) ?? clean;
+  const lowered = clean.toLowerCase();
+  const direct = MODEL_ALIASES.get(lowered);
+  if (direct) {
+    return direct;
+  }
+
+  if (/^eos\s+/i.test(clean)) {
+    return MODEL_ALIASES.get(`canon ${lowered}`) ?? `Canon ${clean}`;
+  }
+
+  return clean;
 }
 
 function isCanonRSeriesModel(model) {
@@ -732,38 +844,209 @@ function pickFirstValue(fields) {
   return found?.value;
 }
 
+function formatOffset(offset) {
+  return `0x${offset.toString(16).padStart(4, "0")}`;
+}
+
+function formatRawBytes(bytes) {
+  return bytes.map((value) => (value == null ? "??" : value.toString(16).padStart(2, "0"))).join(" ");
+}
+
+function getSourcePriority(key) {
+  if (key.startsWith("Track4:")) {
+    return 0;
+  }
+  if (key.startsWith("Canon:")) {
+    return 1;
+  }
+  if (key.startsWith("MakerNotes:")) {
+    return 2;
+  }
+  return 3;
+}
+
+function collectCameraInfoBytes(record) {
+  const bytes = new Map();
+  const regex = /Canon_CameraInfo[^:]*_0x([0-9a-f]{4})$/i;
+
+  Object.entries(record).forEach(([key, value]) => {
+    const match = key.match(regex);
+    if (!match) {
+      return;
+    }
+    if (!Number.isFinite(value)) {
+      return;
+    }
+
+    const offset = Number.parseInt(match[1], 16);
+    const entry = {
+      key,
+      offset,
+      value: Number(value) & 0xff,
+    };
+
+    if (!bytes.has(offset)) {
+      bytes.set(offset, []);
+    }
+    bytes.get(offset).push(entry);
+  });
+
+  return bytes;
+}
+
+function getByteAt(byteMap, offset) {
+  const sources = byteMap.get(offset) ?? [];
+  if (!sources.length) {
+    return null;
+  }
+  const selected = [...sources].sort((left, right) => getSourcePriority(left.key) - getSourcePriority(right.key))[0];
+  return selected;
+}
+
+function readLittleEndianValue(byteMap, offset, width) {
+  const entries = [];
+  for (let index = 0; index < width; index += 1) {
+    entries.push(getByteAt(byteMap, offset + index));
+  }
+
+  const rawBytes = entries.map((entry) => (entry ? entry.value : null));
+  if (entries.some((entry) => entry === null)) {
+    return {
+      ok: false,
+      reason: "missing",
+      rawBytes,
+      sources: entries.filter(Boolean).map((entry) => entry.key),
+    };
+  }
+
+  const value = rawBytes.reduce((total, current, index) => total + (current << (8 * index)), 0);
+  return {
+    ok: true,
+    value,
+    rawBytes,
+    sources: entries.map((entry) => entry.key),
+  };
+}
+
+function resolveRoutedCount(record, model, rawShutterCount) {
+  const route = MODEL_ROUTING.get(model);
+  if (!route) {
+    if (UNSUPPORTED_MODELS.has(model)) {
+      return {
+        mode: "unsupported",
+        compatibility: t("compatibilityUnsupported"),
+        status: t("modelUnsupportedStatus"),
+      };
+    }
+    return null;
+  }
+
+  const byteMap = collectCameraInfoBytes(record);
+  const routed = readLittleEndianValue(byteMap, route.offset, route.width);
+  const offsetHex = formatOffset(route.offset);
+
+  if (!routed.ok) {
+    if (route.tier === 1 && rawShutterCount != null && rawShutterCount !== "") {
+      return {
+        mode: "fallback",
+        compatibility: t("compatibilitySupported"),
+        status: t("readCompleted"),
+        offsetHex,
+        route,
+        routedValue: Number(rawShutterCount),
+        rawBytesHex: formatRawBytes(routed.rawBytes),
+        byteSources: routed.sources,
+        warning: t("missingOffsetBytes", { offset: offsetHex, bytes: formatRawBytes(routed.rawBytes) }),
+      };
+    }
+
+    return {
+      mode: "parseError",
+      compatibility: route.tier === 1 ? t("compatibilitySupported") : t("compatibilityTentative"),
+      status: t("offsetReadError"),
+      offsetHex,
+      route,
+      rawBytesHex: formatRawBytes(routed.rawBytes),
+      byteSources: routed.sources,
+      warning: t("missingOffsetBytes", { offset: offsetHex, bytes: formatRawBytes(routed.rawBytes) }),
+    };
+  }
+
+  const routedValue = routed.value;
+  if (routedValue <= 0 || routedValue > 500000) {
+    if (route.tier === 1 && rawShutterCount != null && rawShutterCount !== "") {
+      return {
+        mode: "fallback",
+        compatibility: t("compatibilitySupported"),
+        status: t("readCompleted"),
+        offsetHex,
+        route,
+        routedValue: Number(rawShutterCount),
+        rawBytesHex: formatRawBytes(routed.rawBytes),
+        byteSources: routed.sources,
+        warning: t("unexpectedOffsetValue", { offset: offsetHex, bytes: formatRawBytes(routed.rawBytes) }),
+      };
+    }
+
+    return {
+      mode: "parseError",
+      compatibility: route.tier === 1 ? t("compatibilitySupported") : t("compatibilityTentative"),
+      status: t("offsetReadError"),
+      offsetHex,
+      route,
+      rawBytesHex: formatRawBytes(routed.rawBytes),
+      byteSources: routed.sources,
+      warning: t("unexpectedOffsetValue", { offset: offsetHex, bytes: formatRawBytes(routed.rawBytes) }),
+    };
+  }
+
+  return {
+    mode: route.tier === 1 ? "supported" : "tentative",
+    compatibility: route.tier === 1 ? t("compatibilitySupported") : t("compatibilityTentative"),
+    status: route.tier === 1 ? t("readCompleted") : t("readCompletedWithWarning"),
+    offsetHex,
+    route,
+    routedValue,
+    rawBytesHex: formatRawBytes(routed.rawBytes),
+    byteSources: routed.sources,
+    warning: route.kind === "imageCount" ? t("imageCountModelNote", { model, offset: offsetHex }) : null,
+  };
+}
+
 function extractCameraInfo(record) {
   const simpleRecord = buildSimpleRecord(record);
   const modelSources = collectSources(simpleRecord, MODEL_SIMPLE_KEYS);
+  const makeSources = collectSources(simpleRecord, MAKE_SIMPLE_KEYS);
   const shutterCountSources = collectSources(simpleRecord, SHUTTER_COUNT_SIMPLE_KEYS);
-  const exposureCountSources = collectSources(simpleRecord, EXPOSURE_COUNT_SIMPLE_KEYS);
 
   const rawModel = pickFirstValue(modelSources);
-  const normalizedModel = normalizeModelName(rawModel == null ? null : String(rawModel));
+  const rawMake = pickFirstValue(makeSources);
+  const effectiveModel = rawModel == null && rawMake ? `${rawMake}` : rawModel;
+  const normalizedModel = normalizeModelName(effectiveModel == null ? null : String(effectiveModel));
   const rawShutterCount = pickFirstValue(shutterCountSources);
-  const rawExposureCount = pickFirstValue(exposureCountSources);
   const shutterCount =
     rawShutterCount == null || rawShutterCount === "" ? t("notPresentInFile") : String(rawShutterCount);
-  const exposureCount =
-    rawExposureCount == null || rawExposureCount === "" ? t("notPresentInFile") : String(rawExposureCount);
-  const primaryCountSource =
-    shutterCount !== t("notPresentInFile")
-      ? "ShutterCount"
-      : exposureCount !== t("notPresentInFile")
-        ? "ExposureCount"
-        : null;
-  const normalizedCount = primaryCountSource === "ShutterCount" ? shutterCount : primaryCountSource === "ExposureCount" ? exposureCount : t("unavailableData");
-  const countsDiffer =
-    shutterCount !== t("notPresentInFile") &&
-    exposureCount !== t("notPresentInFile") &&
-    shutterCount !== exposureCount;
+  const routed = normalizedModel === t("modelNotDetected") ? null : resolveRoutedCount(record, normalizedModel, rawShutterCount);
+
+  let primaryCountSource = null;
+  let normalizedCount = t("unavailableData");
+  if (routed?.mode === "supported" || routed?.mode === "fallback") {
+    primaryCountSource = routed.mode === "fallback" ? t("routingFallback") : `${t("routingLine")} ${routed.offsetHex}`;
+    normalizedCount = String(routed.routedValue);
+  } else if (routed?.mode === "tentative") {
+    primaryCountSource = `${t("routingLine")} ${routed.offsetHex}`;
+    normalizedCount = t("tentativeCountLabel", { count: String(routed.routedValue) });
+  } else if (!routed && shutterCount !== t("notPresentInFile")) {
+    primaryCountSource = "ShutterCount";
+    normalizedCount = shutterCount;
+  }
 
   const isRSeries = normalizedModel !== t("modelNotDetected") && isCanonRSeriesModel(normalizedModel);
   const isTested = TESTED_MODELS.has(normalizedModel);
 
   let compatibility = t("compatibilityNotDetected");
-  if (isTested) {
-    compatibility = t("compatibilityTested");
+  if (routed?.compatibility) {
+    compatibility = routed.compatibility;
   } else if (isRSeries) {
     compatibility = t("compatibilityUntestedR");
   } else if (normalizedModel !== t("modelNotDetected")) {
@@ -771,7 +1054,9 @@ function extractCameraInfo(record) {
   }
 
   let status = t("readCompleted");
-  if (normalizedModel === t("modelNotDetected")) {
+  if (routed?.status) {
+    status = routed.status;
+  } else if (normalizedModel === t("modelNotDetected")) {
     status = t("readCompletedModelMissing");
   } else if (normalizedCount === t("unavailableData")) {
     status = t("partialRead");
@@ -779,20 +1064,18 @@ function extractCameraInfo(record) {
 
   return {
     model: normalizedModel,
-    rawModel: rawModel == null ? null : String(rawModel),
+    rawModel: effectiveModel == null ? null : String(effectiveModel),
     count: normalizedCount,
     shutterCount,
-    exposureCount,
     primaryCountSource,
-    countsDiffer,
     compatibility,
     status,
     isRSeries,
     isTested,
+    routed,
     modelSources,
     countSources: shutterCountSources,
     shutterCountSources,
-    exposureCountSources,
     simpleRecord,
   };
 }
@@ -802,18 +1085,43 @@ function buildStatusNote(info) {
     return t("noExplicitModel");
   }
 
-  if (info.isTested) {
-    return t("testedModelNote", { model: info.rawModel });
+  if (info.routed?.mode === "supported") {
+    return t("supportedModelNote", { model: info.rawModel, offset: info.routed.offsetHex });
+  }
+
+  if (info.routed?.mode === "fallback") {
+    return t("supportedFallbackNote", { model: info.rawModel, offset: info.routed.offsetHex });
+  }
+
+  if (info.routed?.mode === "tentative") {
+    if (info.routed.route.kind === "imageCount") {
+      return t("imageCountModelNote", { model: info.rawModel, offset: info.routed.offsetHex });
+    }
+    return t("tentativeModelNote", { model: info.rawModel, offset: info.routed.offsetHex });
+  }
+
+  if (info.routed?.mode === "unsupported") {
+    return t("unsupportedRModelNote", { model: info.rawModel });
+  }
+
+  if (info.routed?.mode === "parseError") {
+    return info.routed.warning;
   }
 
   if (info.isRSeries) {
-    return t("untestedRModelNote", { model: info.rawModel });
+    return t("unsupportedRModelNote", { model: info.rawModel });
   }
 
   return t("outsideRModelNote", { model: info.rawModel });
 }
 
 function statusClassFor(info) {
+  if (info.routed?.mode === "parseError" || info.routed?.mode === "unsupported") {
+    return "is-danger";
+  }
+  if (info.routed?.mode === "tentative") {
+    return "is-warning";
+  }
   if (info.status === t("partialRead")) {
     return "is-warning";
   }
@@ -851,11 +1159,12 @@ function formatDebugText(file, record, info, errorMessage = null) {
     `- ${t("compatibilityLine")}: ${info.compatibility}`,
     `- ${t("primaryCountSource")}: ${info.primaryCountSource ?? "n/d"}`,
     `- ${t("primaryCountSummary", { source: info.primaryCountSource ?? "n/d" })}`,
+    `- ${t("routingLine")}: ${info.routed?.offsetHex ?? "n/d"}`,
+    `- ${t("routingSource")}: ${info.routed?.byteSources?.join(", ") ?? "n/d"}`,
+    `- ${t("routingBytes")}: ${info.routed?.rawBytesHex ?? "n/d"}`,
+    `- ${t("routingWarning")}: ${info.routed?.warning ?? "n/d"}`,
     "",
-    t("separateCounts"),
     `- ${t("shutterCountLine")}: ${info.shutterCount}`,
-    `- ${t("exposureCountLine")}: ${info.exposureCount}`,
-    `- ${info.countsDiffer ? t("countsDiffer") : t("countsMatch")}`,
     "",
     t("foundModelKeys"),
     ...(info.modelSources.length
@@ -865,11 +1174,6 @@ function formatDebugText(file, record, info, errorMessage = null) {
     t("foundCountKeys"),
     ...(info.shutterCountSources.length
       ? info.shutterCountSources.map((field) => `- ${field.key}: ${String(field.value)}`)
-      : [`- ${t("none")}`]),
-    "",
-    t("foundExposureKeys"),
-    ...(info.exposureCountSources.length
-      ? info.exposureCountSources.map((field) => `- ${field.key}: ${String(field.value)}`)
       : [`- ${t("none")}`]),
     "",
     t("simplifiedMap"),
