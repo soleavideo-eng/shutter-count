@@ -31,20 +31,258 @@ const LOCAL_WASM_URL = new URL(
   window.location.href,
 ).toString();
 const FEEDBACK_ENDPOINT = "https://formsubmit.co/ajax/soleavideo@gmail.com";
+const DEFAULT_LANG = "it";
+
+const translations = {
+  it: {
+    title: "SHUTTER COUNT PER CANON EOS R",
+    subtitle:
+      "Lettura locale dei metadati CR3 Canon direttamente nel browser. Il file resta sul dispositivo dell'utente: nessun upload, nessun server, nessun passaggio esterno dei RAW.",
+    chooseFile: "Seleziona file",
+    clear: "Pulisci",
+    formatLabel: "Formato",
+    formatValue: "CR3 Canon",
+    privacyLabel: "Privacy",
+    privacyValue: "elaborazione nel browser",
+    dropTitle: "Trascina qui un file .CR3",
+    dropText:
+      "Oppure usa il pulsante di selezione. L'analisi parte subito e mostra modello, shutter count, stato di lettura, compatibilità e file selezionato senza aprire il pannello debug.",
+    readingStatus: "STATO LETTURA",
+    ready: "Pronto",
+    readyNote:
+      "Trascina un file CR3 oppure selezionalo manualmente. ExifTool gira direttamente nel browser.",
+    runtimeLoading: "Libreria metadata in caricamento…",
+    runtimeReady: "Runtime ExifTool WASM pronto. Moduli e WebAssembly sono serviti localmente.",
+    runtimeUnavailable:
+      "Runtime ExifTool WASM non disponibile. Verifica che il server statico esponga correttamente i file locali ESM/WASM.",
+    model: "MODELLO",
+    count: "COUNT",
+    compatibility: "COMPATIBILITÀ",
+    selectedFile: "FILE SELEZIONATO",
+    noFile: "Nessun file selezionato",
+    debug: "DEBUG",
+    debugCaption:
+      "Area secondaria con chiavi rilevate davvero, mappa semplificata e output ExifTool per troubleshooting.",
+    noDebug: "Nessun debug disponibile.",
+    feedback: "FEEDBACK",
+    feedbackTitle: "Aiutami a capire se l'app funziona davvero",
+    feedbackCopy:
+      "Invia il tuo feedback insieme ai dati tecnici dell'analisi corrente. Il file CR3 non viene caricato: viene inviato solo un report testuale con il risultato del test.",
+    testerName: "Nome",
+    testerNamePlaceholder: "Facoltativo",
+    replyEmail: "Email",
+    replyEmailPlaceholder: "Per eventuale risposta",
+    userCameraModel: "Modello fotocamera usato",
+    userCameraModelPlaceholder: "Es. Canon EOS R6 Mark II",
+    browserDevice: "Browser / dispositivo",
+    browserDevicePlaceholder: "Es. Safari su MacBook Air M2",
+    testOutcome: "Esito del test",
+    selectOption: "Seleziona",
+    outcomeOkModelCount: "Modello e count corretti",
+    outcomeOkModelMissing: "Modello corretto, count mancante",
+    outcomeWrongModel: "Modello sbagliato",
+    outcomeWrongCount: "Count sbagliato",
+    outcomeRuntimeError: "Errore tecnico / runtime",
+    outcomeOther: "Altro",
+    countAccuracy: "Il count ti sembra preciso?",
+    yes: "Sì",
+    no: "No",
+    notSure: "Non sono sicuro",
+    notAvailable: "Dato non disponibile",
+    notes: "Note utili",
+    notesPlaceholder:
+      "Scrivi cosa ha funzionato, cosa non ha funzionato, se il count corrisponde, se il modello è corretto, eventuali errori o comportamenti strani.",
+    sendFeedback: "Invia feedback",
+    firstSendNote:
+      "Il primo invio potrebbe richiedere la conferma del servizio email se il form non è ancora stato attivato.",
+    sending: "Invio in corso…",
+    sent: "Feedback inviato. Controlla la mail di attivazione del form se questo è il primo invio.",
+    sendFailed: "Invio non riuscito",
+    invalidFile: "File non valido",
+    invalidFileNote: "Trascina un file Canon .CR3 valido.",
+    analyzing: "Analisi in corso…",
+    analyzingCount: "Analisi in corso…",
+    checking: "Verifica in corso…",
+    analyzingNote:
+      "Lettura dei metadati con ExifTool WebAssembly e ricerca robusta di modello e shutter count.",
+    invalidCr3: "Il file selezionato non è un file .CR3.",
+    unavailableData: "dato non disponibile",
+    verificationIncomplete: "verifica non completata",
+    readError: "Errore di lettura",
+    modelNotDetected: "Modello non rilevato",
+    compatibilityNotDetected: "modello non rilevato",
+    compatibilityTested: "modello testato",
+    compatibilityUntestedR: "modello Canon R non testato",
+    compatibilityOutsideR: "modello fuori serie R",
+    partialRead: "Lettura completata con dati parziali",
+    readCompletedModelMissing: "Lettura completata con modello non rilevato",
+    readCompleted: "Lettura completata",
+    noExplicitModel:
+      "Nessun modello esplicito trovato. Il parser ha comunque controllato chiavi semplificate e gruppi ExifTool.",
+    testedModelNote: "Modello rilevato: {model}. Questo modello è già stato marcato come testato.",
+    untestedRModelNote:
+      "Modello rilevato: {model}. Fa parte della serie Canon EOS R ma non è ancora marcato come testato.",
+    outsideRModelNote:
+      "Modello rilevato: {model}. Il file non appartiene alla serie Canon EOS R riconosciuta dall'app.",
+    runtimeOrigin: "Origine runtime: moduli locali vendorizzati",
+    runtimeLabel: "Runtime: ExifTool WebAssembly in browser",
+    fileLine: "File",
+    sizeLine: "Dimensione",
+    errorLine: "Errore",
+    noData: "Nessun dato disponibile.",
+    modelEvaluation: "Valutazione modello:",
+    normalizedModel: "modello normalizzato",
+    rawModel: "modello raw",
+    rSeries: "serie Canon R",
+    testedModel: "modello testato",
+    compatibilityLine: "compatibilità",
+    foundModelKeys: "Chiavi modello trovate:",
+    foundCountKeys: "Chiavi shutter count trovate:",
+    simplifiedMap: "Mappa chiavi semplificate:",
+    fullRecord: "Record ExifTool completo:",
+    none: "nessuna",
+    yesShort: "si",
+    noShort: "no",
+    debugTruncated: "[debug troncato]",
+  },
+  en: {
+    title: "SHUTTER COUNT FOR CANON EOS R",
+    subtitle:
+      "Local reading of Canon CR3 metadata directly in the browser. The file stays on the user's device: no upload, no server, no external RAW transfer.",
+    chooseFile: "Choose file",
+    clear: "Clear",
+    formatLabel: "Format",
+    formatValue: "Canon CR3",
+    privacyLabel: "Privacy",
+    privacyValue: "processed in browser",
+    dropTitle: "Drag a .CR3 file here",
+    dropText:
+      "Or use the file picker. Analysis starts immediately and shows model, shutter count, read status, compatibility, and selected file without opening the debug panel.",
+    readingStatus: "READ STATUS",
+    ready: "Ready",
+    readyNote: "Drag a CR3 file or choose it manually. ExifTool runs directly in the browser.",
+    runtimeLoading: "Metadata runtime loading…",
+    runtimeReady: "ExifTool WASM runtime ready. Modules and WebAssembly are served locally.",
+    runtimeUnavailable:
+      "ExifTool WASM runtime unavailable. Check that the static server is serving local ESM/WASM files correctly.",
+    model: "MODEL",
+    count: "COUNT",
+    compatibility: "COMPATIBILITY",
+    selectedFile: "SELECTED FILE",
+    noFile: "No file selected",
+    debug: "DEBUG",
+    debugCaption:
+      "Secondary area with the actual detected keys, simplified key map, and ExifTool output for troubleshooting.",
+    noDebug: "No debug data available.",
+    feedback: "FEEDBACK",
+    feedbackTitle: "Help me understand whether the app really works",
+    feedbackCopy:
+      "Send your feedback together with the current analysis data. The CR3 file is not uploaded: only a text report with the test result is sent.",
+    testerName: "Name",
+    testerNamePlaceholder: "Optional",
+    replyEmail: "Email",
+    replyEmailPlaceholder: "For a possible reply",
+    userCameraModel: "Camera model used",
+    userCameraModelPlaceholder: "E.g. Canon EOS R6 Mark II",
+    browserDevice: "Browser / device",
+    browserDevicePlaceholder: "E.g. Safari on MacBook Air M2",
+    testOutcome: "Test outcome",
+    selectOption: "Select",
+    outcomeOkModelCount: "Correct model and count",
+    outcomeOkModelMissing: "Correct model, missing count",
+    outcomeWrongModel: "Wrong model",
+    outcomeWrongCount: "Wrong count",
+    outcomeRuntimeError: "Technical / runtime error",
+    outcomeOther: "Other",
+    countAccuracy: "Does the count look accurate?",
+    yes: "Yes",
+    no: "No",
+    notSure: "Not sure",
+    notAvailable: "Data not available",
+    notes: "Useful notes",
+    notesPlaceholder:
+      "Describe what worked, what did not work, whether the count matches, whether the model is correct, and any errors or unusual behavior.",
+    sendFeedback: "Send feedback",
+    firstSendNote:
+      "The first submission may require confirmation from the email service if the form has not been activated yet.",
+    sending: "Sending…",
+    sent: "Feedback sent. Check the activation email for the form if this is the first submission.",
+    sendFailed: "Sending failed",
+    invalidFile: "Invalid file",
+    invalidFileNote: "Drag a valid Canon .CR3 file.",
+    analyzing: "Analyzing…",
+    analyzingCount: "Analyzing…",
+    checking: "Checking…",
+    analyzingNote:
+      "Reading metadata with ExifTool WebAssembly and performing a robust search for model and shutter count.",
+    invalidCr3: "The selected file is not a .CR3 file.",
+    unavailableData: "data not available",
+    verificationIncomplete: "verification not completed",
+    readError: "Read error",
+    modelNotDetected: "Model not detected",
+    compatibilityNotDetected: "model not detected",
+    compatibilityTested: "tested model",
+    compatibilityUntestedR: "untested Canon R model",
+    compatibilityOutsideR: "model outside R series",
+    partialRead: "Read completed with partial data",
+    readCompletedModelMissing: "Read completed with model not detected",
+    readCompleted: "Read completed",
+    noExplicitModel:
+      "No explicit model was found. The parser still checked simplified keys and ExifTool groups.",
+    testedModelNote: "Detected model: {model}. This model is already marked as tested.",
+    untestedRModelNote:
+      "Detected model: {model}. It belongs to the Canon EOS R series but is not marked as tested yet.",
+    outsideRModelNote:
+      "Detected model: {model}. The file does not belong to the Canon EOS R series recognized by the app.",
+    runtimeOrigin: "Runtime source: vendored local modules",
+    runtimeLabel: "Runtime: ExifTool WebAssembly in browser",
+    fileLine: "File",
+    sizeLine: "Size",
+    errorLine: "Error",
+    noData: "No data available.",
+    modelEvaluation: "Model evaluation:",
+    normalizedModel: "normalized model",
+    rawModel: "raw model",
+    rSeries: "Canon R series",
+    testedModel: "tested model",
+    compatibilityLine: "compatibility",
+    foundModelKeys: "Detected model keys:",
+    foundCountKeys: "Detected shutter count keys:",
+    simplifiedMap: "Simplified key map:",
+    fullRecord: "Full ExifTool record:",
+    none: "none",
+    yesShort: "yes",
+    noShort: "no",
+    debugTruncated: "[debug truncated]",
+  },
+};
+
+let currentLang = DEFAULT_LANG;
 
 const exiftoolModulePromise = import("@uswriting/exiftool");
 
 const app = document.querySelector("#app");
 
+function t(key, params = {}) {
+  let value = translations[currentLang][key] ?? translations[DEFAULT_LANG][key] ?? key;
+  Object.entries(params).forEach(([param, replacement]) => {
+    value = value.replaceAll(`{${param}}`, replacement);
+  });
+  return value;
+}
+
 app.innerHTML = `
   <main class="page-shell">
     <section class="hero">
       <div>
-        <h1 class="hero-title">${APP_TITLE}</h1>
-        <p class="hero-subtitle">
-          Lettura locale dei metadati CR3 Canon direttamente nel browser. Il file resta sul dispositivo dell'utente:
-          nessun upload, nessun server, nessun passaggio esterno dei RAW.
-        </p>
+        <div class="topbar">
+          <div class="lang-switch" role="group" aria-label="Language switch">
+            <button class="lang-button is-active" id="lang-it" type="button">IT</button>
+            <button class="lang-button" id="lang-en" type="button">EN</button>
+          </div>
+        </div>
+        <h1 class="hero-title" id="hero-title">${t("title")}</h1>
+        <p class="hero-subtitle" id="hero-subtitle">${t("subtitle")}</p>
       </div>
 
       <div class="hero-grid">
@@ -52,18 +290,15 @@ app.innerHTML = `
           <div class="drop-zone" id="drop-zone">
             <div>
               <div class="drop-badge">CR3</div>
-              <h2 class="drop-title">Trascina qui un file .CR3</h2>
-              <p class="drop-text">
-                Oppure usa il pulsante di selezione. L'analisi parte subito e mostra modello, shutter count,
-                stato di lettura, compatibilità e file selezionato senza aprire il pannello debug.
-              </p>
+              <h2 class="drop-title" id="drop-title">${t("dropTitle")}</h2>
+              <p class="drop-text" id="drop-text">${t("dropText")}</p>
               <div class="drop-actions">
-                <button class="button button-primary" id="choose-file" type="button">Seleziona file</button>
-                <button class="button button-secondary" id="clear-results" type="button">Pulisci</button>
+                <button class="button button-primary" id="choose-file" type="button">${t("chooseFile")}</button>
+                <button class="button button-secondary" id="clear-results" type="button">${t("clear")}</button>
               </div>
               <div class="helper-row">
-                <span class="pill"><strong>Formato</strong> CR3 Canon</span>
-                <span class="pill"><strong>Privacy</strong> elaborazione nel browser</span>
+                <span class="pill"><strong id="pill-format-label">${t("formatLabel")}</strong> <span id="pill-format-value">${t("formatValue")}</span></span>
+                <span class="pill"><strong id="pill-privacy-label">${t("privacyLabel")}</strong> <span id="pill-privacy-value">${t("privacyValue")}</span></span>
               </div>
             </div>
           </div>
@@ -71,118 +306,110 @@ app.innerHTML = `
         </section>
 
         <aside class="panel status-panel">
-          <p class="eyebrow">STATO LETTURA</p>
-          <p class="status-value" id="status-value">Pronto</p>
-          <p class="status-note" id="status-note">
-            Trascina un file CR3 oppure selezionalo manualmente. ExifTool gira direttamente nel browser.
-          </p>
-          <p class="privacy-note" id="runtime-note">
-            Libreria metadata in caricamento…
-          </p>
+          <p class="eyebrow" id="status-label">${t("readingStatus")}</p>
+          <p class="status-value" id="status-value">${t("ready")}</p>
+          <p class="status-note" id="status-note">${t("readyNote")}</p>
+          <p class="privacy-note" id="runtime-note">${t("runtimeLoading")}</p>
         </aside>
       </div>
     </section>
 
     <section class="results-grid">
       <article class="panel result-card">
-        <p class="eyebrow">MODELLO</p>
+        <p class="eyebrow" id="model-label">${t("model")}</p>
         <p class="result-value" id="model-value">—</p>
       </article>
       <article class="panel result-card">
-        <p class="eyebrow">COUNT</p>
+        <p class="eyebrow" id="count-label">${t("count")}</p>
         <p class="result-value" id="count-value">—</p>
       </article>
       <article class="panel result-card">
-        <p class="eyebrow">COMPATIBILITÀ</p>
+        <p class="eyebrow" id="compatibility-label">${t("compatibility")}</p>
         <p class="result-value subtle" id="compatibility-value">—</p>
       </article>
       <article class="panel result-card">
-        <p class="eyebrow">FILE SELEZIONATO</p>
-        <p class="result-value subtle" id="file-value">Nessun file selezionato</p>
+        <p class="eyebrow" id="file-label">${t("selectedFile")}</p>
+        <p class="result-value subtle" id="file-value">${t("noFile")}</p>
       </article>
     </section>
 
     <details class="panel debug-panel" id="debug-panel">
       <summary class="debug-summary">
         <div>
-          <p class="eyebrow">DEBUG</p>
-          <p class="debug-caption">
-            Area secondaria con chiavi rilevate davvero, mappa semplificata e output ExifTool per troubleshooting.
-          </p>
+          <p class="eyebrow" id="debug-label">${t("debug")}</p>
+          <p class="debug-caption" id="debug-caption">${t("debugCaption")}</p>
         </div>
         <span class="debug-chevron">›</span>
       </summary>
       <div class="debug-content">
-        <pre class="debug-output" id="debug-output">Nessun debug disponibile.</pre>
+        <pre class="debug-output" id="debug-output">${t("noDebug")}</pre>
       </div>
     </details>
 
     <section class="panel feedback-panel">
       <div class="feedback-header">
         <div>
-          <p class="eyebrow">FEEDBACK</p>
-          <h2 class="feedback-title">Aiutami a capire se l'app funziona davvero</h2>
-          <p class="feedback-copy">
-            Invia il tuo feedback insieme ai dati tecnici dell'analisi corrente. Il file CR3 non viene caricato:
-            viene inviato solo un report testuale con il risultato del test.
-          </p>
+          <p class="eyebrow" id="feedback-label">${t("feedback")}</p>
+          <h2 class="feedback-title" id="feedback-title">${t("feedbackTitle")}</h2>
+          <p class="feedback-copy" id="feedback-copy">${t("feedbackCopy")}</p>
         </div>
       </div>
 
       <form class="feedback-form" id="feedback-form" novalidate>
         <div class="feedback-grid">
           <label class="field">
-            <span class="field-label">Nome</span>
-            <input class="field-input" name="tester_name" type="text" placeholder="Facoltativo" />
+            <span class="field-label" id="tester-name-label">${t("testerName")}</span>
+            <input class="field-input" id="tester-name-input" name="tester_name" type="text" placeholder="${t("testerNamePlaceholder")}" />
           </label>
 
           <label class="field">
-            <span class="field-label">Email</span>
-            <input class="field-input" name="reply_to" type="email" placeholder="Per eventuale risposta" />
+            <span class="field-label" id="reply-email-label">${t("replyEmail")}</span>
+            <input class="field-input" id="reply-email-input" name="reply_to" type="email" placeholder="${t("replyEmailPlaceholder")}" />
           </label>
 
           <label class="field">
-            <span class="field-label">Modello fotocamera usato</span>
-            <input class="field-input" name="camera_model_user" type="text" placeholder="Es. Canon EOS R6 Mark II" required />
+            <span class="field-label" id="camera-model-user-label">${t("userCameraModel")}</span>
+            <input class="field-input" id="camera-model-user-input" name="camera_model_user" type="text" placeholder="${t("userCameraModelPlaceholder")}" required />
           </label>
 
           <label class="field">
-            <span class="field-label">Browser / dispositivo</span>
-            <input class="field-input" name="browser_device" type="text" placeholder="Es. Safari su MacBook Air M2" />
+            <span class="field-label" id="browser-device-label">${t("browserDevice")}</span>
+            <input class="field-input" id="browser-device-input" name="browser_device" type="text" placeholder="${t("browserDevicePlaceholder")}" />
           </label>
 
           <label class="field">
-            <span class="field-label">Esito del test</span>
+            <span class="field-label" id="test-outcome-label">${t("testOutcome")}</span>
             <select class="field-input" name="test_outcome" required>
-              <option value="">Seleziona</option>
-              <option value="ok_model_and_count">Modello e count corretti</option>
-              <option value="ok_model_missing_count">Modello corretto, count mancante</option>
-              <option value="wrong_model">Modello sbagliato</option>
-              <option value="wrong_count">Count sbagliato</option>
-              <option value="runtime_error">Errore tecnico / runtime</option>
-              <option value="other">Altro</option>
+              <option value="">${t("selectOption")}</option>
+              <option value="ok_model_and_count">${t("outcomeOkModelCount")}</option>
+              <option value="ok_model_missing_count">${t("outcomeOkModelMissing")}</option>
+              <option value="wrong_model">${t("outcomeWrongModel")}</option>
+              <option value="wrong_count">${t("outcomeWrongCount")}</option>
+              <option value="runtime_error">${t("outcomeRuntimeError")}</option>
+              <option value="other">${t("outcomeOther")}</option>
             </select>
           </label>
 
           <label class="field">
-            <span class="field-label">Il count ti sembra preciso?</span>
+            <span class="field-label" id="count-accuracy-label">${t("countAccuracy")}</span>
             <select class="field-input" name="count_accuracy" required>
-              <option value="">Seleziona</option>
-              <option value="yes">Sì</option>
-              <option value="no">No</option>
-              <option value="not_sure">Non sono sicuro</option>
-              <option value="not_available">Dato non disponibile</option>
+              <option value="">${t("selectOption")}</option>
+              <option value="yes">${t("yes")}</option>
+              <option value="no">${t("no")}</option>
+              <option value="not_sure">${t("notSure")}</option>
+              <option value="not_available">${t("notAvailable")}</option>
             </select>
           </label>
         </div>
 
         <label class="field field-full">
-          <span class="field-label">Note utili</span>
+          <span class="field-label" id="notes-label">${t("notes")}</span>
           <textarea
             class="field-input field-textarea"
+            id="notes-input"
             name="feedback_notes"
             rows="6"
-            placeholder="Scrivi cosa ha funzionato, cosa non ha funzionato, se il count corrisponde, se il modello è corretto, eventuali errori o comportamenti strani."
+            placeholder="${t("notesPlaceholder")}"
             required
           ></textarea>
         </label>
@@ -201,10 +428,8 @@ app.innerHTML = `
         <input type="hidden" name="debug_excerpt" id="feedback-debug" />
 
         <div class="feedback-actions">
-          <button class="button button-primary" id="feedback-submit" type="submit">Invia feedback</button>
-          <p class="feedback-status" id="feedback-status">
-            Il primo invio potrebbe richiedere la conferma del servizio email se il form non è ancora stato attivato.
-          </p>
+          <button class="button button-primary" id="feedback-submit" type="submit">${t("sendFeedback")}</button>
+          <p class="feedback-status" id="feedback-status">${t("firstSendNote")}</p>
         </div>
       </form>
     </section>
@@ -236,36 +461,46 @@ const refs = {
   feedbackDetectedCompatibility: document.querySelector("#feedback-detected-compatibility"),
   feedbackDetectedStatus: document.querySelector("#feedback-detected-status"),
   feedbackDebug: document.querySelector("#feedback-debug"),
+  langIt: document.querySelector("#lang-it"),
+  langEn: document.querySelector("#lang-en"),
 };
 
 let activeToken = 0;
 let lastAnalysisSnapshot = {
-  runtimeOrigin: "moduli locali vendorizzati",
-  file: "Nessun file selezionato",
+  runtimeOrigin: t("runtimeOrigin"),
+  file: t("noFile"),
   model: "—",
   count: "—",
   compatibility: "—",
-  status: "Pronto",
-  debugExcerpt: "Nessun debug disponibile.",
+  status: t("ready"),
+  debugExcerpt: t("noDebug"),
 };
+let runtimeReady = false;
+let runtimeFailed = false;
+let currentViewState = "ready";
+let lastErrorMessage = "";
 
 primeRuntime();
 bindEvents();
+applyLanguage();
 
 async function primeRuntime() {
   try {
     await exiftoolModulePromise;
-    refs.runtimeNote.textContent = "Runtime ExifTool WASM pronto. Moduli e WebAssembly sono serviti localmente.";
+    runtimeReady = true;
+    refs.runtimeNote.textContent = t("runtimeReady");
   } catch (error) {
-    refs.runtimeNote.textContent =
-      "Runtime ExifTool WASM non disponibile. Verifica che il server statico esponga correttamente i file locali ESM/WASM.";
+    runtimeFailed = true;
+    refs.runtimeNote.textContent = t("runtimeUnavailable");
     refs.runtimeNote.className = "privacy-note is-danger";
     refs.debugPanel.open = true;
-    refs.debugOutput.textContent = `Errore caricamento libreria:\n${stringifyError(error)}`;
+    refs.debugOutput.textContent = `Runtime load error:\n${stringifyError(error)}`;
   }
 }
 
 function bindEvents() {
+  refs.langIt.addEventListener("click", () => setLanguage("it"));
+  refs.langEn.addEventListener("click", () => setLanguage("en"));
   refs.chooseButton.addEventListener("click", () => refs.fileInput.click());
   refs.fileInput.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
@@ -300,9 +535,10 @@ function bindEvents() {
       return;
     }
 
-    refs.statusValue.textContent = "File non valido";
+    currentViewState = "invalidFile";
+    refs.statusValue.textContent = t("invalidFile");
     refs.statusValue.className = "status-value is-danger";
-    refs.statusNote.textContent = "Trascina un file Canon .CR3 valido.";
+    refs.statusNote.textContent = t("invalidFileNote");
   });
 
   refs.feedbackForm.addEventListener("submit", submitFeedback);
@@ -312,23 +548,24 @@ function bindEvents() {
 function clearResults() {
   activeToken += 1;
   refs.fileInput.value = "";
-  refs.statusValue.textContent = "Pronto";
+  currentViewState = "ready";
+  refs.statusValue.textContent = t("ready");
   refs.statusValue.className = "status-value";
-  refs.statusNote.textContent =
-    "Trascina un file CR3 oppure selezionalo manualmente. ExifTool gira direttamente nel browser.";
+  refs.statusNote.textContent = t("readyNote");
   refs.modelValue.textContent = "—";
   refs.countValue.textContent = "—";
   refs.compatibilityValue.textContent = "—";
-  refs.fileValue.textContent = "Nessun file selezionato";
-  refs.debugOutput.textContent = "Nessun debug disponibile.";
+  refs.fileValue.textContent = t("noFile");
+  refs.debugOutput.textContent = t("noDebug");
   lastAnalysisSnapshot = {
     ...lastAnalysisSnapshot,
-    file: "Nessun file selezionato",
+    runtimeOrigin: t("runtimeOrigin"),
+    file: t("noFile"),
     model: "—",
     count: "—",
     compatibility: "—",
-    status: "Pronto",
-    debugExcerpt: "Nessun debug disponibile.",
+    status: t("ready"),
+    debugExcerpt: t("noDebug"),
   };
   syncFeedbackContext();
 }
@@ -336,18 +573,18 @@ function clearResults() {
 async function analyzeFile(file) {
   const token = ++activeToken;
 
+  currentViewState = "analyzing";
   refs.fileValue.textContent = `${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
-  refs.modelValue.textContent = "Analisi in corso…";
-  refs.countValue.textContent = "Analisi in corso…";
-  refs.compatibilityValue.textContent = "Verifica in corso…";
-  refs.statusValue.textContent = "Analisi in corso…";
+  refs.modelValue.textContent = t("analyzing");
+  refs.countValue.textContent = t("analyzingCount");
+  refs.compatibilityValue.textContent = t("checking");
+  refs.statusValue.textContent = t("analyzing");
   refs.statusValue.className = "status-value";
-  refs.statusNote.textContent =
-    "Lettura dei metadati con ExifTool WebAssembly e ricerca robusta di modello e shutter count.";
-  refs.debugOutput.textContent = "Analisi in corso…";
+  refs.statusNote.textContent = t("analyzingNote");
+  refs.debugOutput.textContent = t("analyzing");
 
   if (!file.name.toLowerCase().endsWith(".cr3")) {
-    applyError("Il file selezionato non è un file .CR3.", file, token);
+    applyError(t("invalidCr3"), file, token);
     return;
   }
 
@@ -380,6 +617,7 @@ async function analyzeFile(file) {
 }
 
 function applySuccess(info, record, file) {
+  currentViewState = "success";
   refs.modelValue.textContent = info.model;
   refs.countValue.textContent = info.count;
   refs.compatibilityValue.textContent = info.compatibility;
@@ -405,10 +643,12 @@ function applyError(errorMessage, file, token) {
     return;
   }
 
-  refs.modelValue.textContent = "dato non disponibile";
-  refs.countValue.textContent = "dato non disponibile";
-  refs.compatibilityValue.textContent = "verifica non completata";
-  refs.statusValue.textContent = "Errore di lettura";
+  currentViewState = "error";
+  lastErrorMessage = errorMessage;
+  refs.modelValue.textContent = t("unavailableData");
+  refs.countValue.textContent = t("unavailableData");
+  refs.compatibilityValue.textContent = t("verificationIncomplete");
+  refs.statusValue.textContent = t("readError");
   refs.statusValue.className = "status-value is-danger";
   refs.statusNote.textContent = errorMessage;
   refs.debugPanel.open = true;
@@ -417,10 +657,10 @@ function applyError(errorMessage, file, token) {
   lastAnalysisSnapshot = {
     ...lastAnalysisSnapshot,
     file: file ? `${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB` : "Nessun file selezionato",
-    model: "dato non disponibile",
-    count: "dato non disponibile",
-    compatibility: "verifica non completata",
-    status: "Errore di lettura",
+    model: t("unavailableData"),
+    count: t("unavailableData"),
+    compatibility: t("verificationIncomplete"),
+    status: t("readError"),
     debugExcerpt: truncateDebug(debugText),
   };
   syncFeedbackContext();
@@ -448,7 +688,7 @@ function buildSimpleRecord(record) {
 
 function normalizeModelName(model) {
   if (!model) {
-    return "Modello non rilevato";
+    return t("modelNotDetected");
   }
 
   const clean = String(model).trim().replace(/\s+/g, " ");
@@ -477,30 +717,31 @@ function extractCameraInfo(record) {
   const normalizedModel = normalizeModelName(rawModel == null ? null : String(rawModel));
   const rawCount = pickFirstValue(countSources);
   const count = rawCount == null || rawCount === "" ? "dato non disponibile" : String(rawCount);
+  const normalizedCount = rawCount == null || rawCount === "" ? t("unavailableData") : String(rawCount);
 
-  const isRSeries = normalizedModel !== "Modello non rilevato" && isCanonRSeriesModel(normalizedModel);
+  const isRSeries = normalizedModel !== t("modelNotDetected") && isCanonRSeriesModel(normalizedModel);
   const isTested = TESTED_MODELS.has(normalizedModel);
 
-  let compatibility = "modello non rilevato";
+  let compatibility = t("compatibilityNotDetected");
   if (isTested) {
-    compatibility = "modello testato";
+    compatibility = t("compatibilityTested");
   } else if (isRSeries) {
-    compatibility = "modello Canon R non testato";
-  } else if (normalizedModel !== "Modello non rilevato") {
-    compatibility = "modello fuori serie R";
+    compatibility = t("compatibilityUntestedR");
+  } else if (normalizedModel !== t("modelNotDetected")) {
+    compatibility = t("compatibilityOutsideR");
   }
 
-  let status = "Lettura completata";
-  if (normalizedModel === "Modello non rilevato") {
-    status = "Lettura completata con modello non rilevato";
-  } else if (count === "dato non disponibile") {
-    status = "Lettura completata con dati parziali";
+  let status = t("readCompleted");
+  if (normalizedModel === t("modelNotDetected")) {
+    status = t("readCompletedModelMissing");
+  } else if (normalizedCount === t("unavailableData")) {
+    status = t("partialRead");
   }
 
   return {
     model: normalizedModel,
     rawModel: rawModel == null ? null : String(rawModel),
-    count,
+    count: normalizedCount,
     compatibility,
     status,
     isRSeries,
@@ -513,25 +754,25 @@ function extractCameraInfo(record) {
 
 function buildStatusNote(info) {
   if (!info.rawModel) {
-    return "Nessun modello esplicito trovato. Il parser ha comunque controllato chiavi semplificate e gruppi ExifTool.";
+    return t("noExplicitModel");
   }
 
   if (info.isTested) {
-    return `Modello rilevato: ${info.rawModel}. Questo modello è già stato marcato come testato.`;
+    return t("testedModelNote", { model: info.rawModel });
   }
 
   if (info.isRSeries) {
-    return `Modello rilevato: ${info.rawModel}. Fa parte della serie Canon EOS R ma non è ancora marcato come testato.`;
+    return t("untestedRModelNote", { model: info.rawModel });
   }
 
-  return `Modello rilevato: ${info.rawModel}. Il file non appartiene alla serie Canon EOS R riconosciuta dall'app.`;
+  return t("outsideRModelNote", { model: info.rawModel });
 }
 
 function statusClassFor(info) {
-  if (info.status.includes("parziali")) {
+  if (info.status === t("partialRead")) {
     return "is-warning";
   }
-  if (info.status.includes("non rilevato")) {
+  if (info.status === t("readCompletedModelMissing")) {
     return "is-warning";
   }
   return "is-success";
@@ -539,42 +780,42 @@ function statusClassFor(info) {
 
 function formatDebugText(file, record, info, errorMessage = null) {
   const lines = [
-    `File: ${file?.name ?? "n/d"}`,
-    `Dimensione: ${file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : "n/d"}`,
-    "Runtime: ExifTool WebAssembly in browser",
-    "Origine runtime: moduli locali vendorizzati",
+    `${t("fileLine")}: ${file?.name ?? "n/d"}`,
+    `${t("sizeLine")}: ${file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : "n/d"}`,
+    t("runtimeLabel"),
+    t("runtimeOrigin"),
   ];
 
   if (errorMessage) {
-    lines.push("", "Errore:", errorMessage);
+    lines.push("", `${t("errorLine")}:`, errorMessage);
     return lines.join("\n");
   }
 
   if (!record || !info) {
-    lines.push("", "Nessun dato disponibile.");
+    lines.push("", t("noData"));
     return lines.join("\n");
   }
 
   lines.push(
     "",
-    "Valutazione modello:",
-    `- modello normalizzato: ${info.model}`,
-    `- modello raw: ${info.rawModel ?? "n/d"}`,
-    `- serie Canon R: ${info.isRSeries ? "si" : "no"}`,
-    `- modello testato: ${info.isTested ? "si" : "no"}`,
-    `- compatibilità: ${info.compatibility}`,
+    t("modelEvaluation"),
+    `- ${t("normalizedModel")}: ${info.model}`,
+    `- ${t("rawModel")}: ${info.rawModel ?? "n/d"}`,
+    `- ${t("rSeries")}: ${info.isRSeries ? t("yesShort") : t("noShort")}`,
+    `- ${t("testedModel")}: ${info.isTested ? t("yesShort") : t("noShort")}`,
+    `- ${t("compatibilityLine")}: ${info.compatibility}`,
     "",
-    "Chiavi modello trovate:",
+    t("foundModelKeys"),
     ...(info.modelSources.length
       ? info.modelSources.map((field) => `- ${field.key}: ${String(field.value)}`)
-      : ["- nessuna"]),
+      : [`- ${t("none")}`]),
     "",
-    "Chiavi shutter count trovate:",
+    t("foundCountKeys"),
     ...(info.countSources.length
       ? info.countSources.map((field) => `- ${field.key}: ${String(field.value)}`)
-      : ["- nessuna"]),
+      : [`- ${t("none")}`]),
     "",
-    "Mappa chiavi semplificate:",
+    t("simplifiedMap"),
   );
 
   Object.keys(info.simpleRecord)
@@ -584,7 +825,7 @@ function formatDebugText(file, record, info, errorMessage = null) {
       lines.push(`- ${simpleKey}: ${originals}`);
     });
 
-  lines.push("", "Record ExifTool completo:", JSON.stringify(record, null, 2));
+  lines.push("", t("fullRecord"), JSON.stringify(record, null, 2));
   return lines.join("\n");
 }
 
@@ -613,7 +854,7 @@ function syncFeedbackContext() {
 }
 
 function truncateDebug(text) {
-  return text.length > 4000 ? `${text.slice(0, 4000)}\n\n[debug troncato]` : text;
+  return text.length > 4000 ? `${text.slice(0, 4000)}\n\n${t("debugTruncated")}` : text;
 }
 
 async function submitFeedback(event) {
@@ -624,7 +865,7 @@ async function submitFeedback(event) {
   }
 
   refs.feedbackSubmit.disabled = true;
-  refs.feedbackStatus.textContent = "Invio in corso…";
+  refs.feedbackStatus.textContent = t("sending");
   refs.feedbackStatus.className = "feedback-status";
 
   const formData = new FormData(refs.feedbackForm);
@@ -652,18 +893,125 @@ async function submitFeedback(event) {
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok || payload.success === "false") {
-      throw new Error(payload.message || "Invio non riuscito.");
+      throw new Error(payload.message || t("sendFailed"));
     }
 
     refs.feedbackStatus.textContent =
-      "Feedback inviato. Controlla la mail di attivazione del form se questo è il primo invio.";
+      t("sent");
     refs.feedbackStatus.className = "feedback-status is-success";
     refs.feedbackForm.reset();
     syncFeedbackContext();
   } catch (error) {
-    refs.feedbackStatus.textContent = `Invio non riuscito: ${stringifyError(error)}`;
+    refs.feedbackStatus.textContent = `${t("sendFailed")}: ${stringifyError(error)}`;
     refs.feedbackStatus.className = "feedback-status is-danger";
   } finally {
     refs.feedbackSubmit.disabled = false;
   }
+}
+
+function setLanguage(lang) {
+  if (!translations[lang] || currentLang === lang) {
+    return;
+  }
+  currentLang = lang;
+  applyLanguage();
+}
+
+function applyLanguage() {
+  document.title = t("title");
+  refs.langIt.classList.toggle("is-active", currentLang === "it");
+  refs.langEn.classList.toggle("is-active", currentLang === "en");
+  document.querySelector("#hero-title").textContent = t("title");
+  document.querySelector("#hero-subtitle").textContent = t("subtitle");
+  document.querySelector("#drop-title").textContent = t("dropTitle");
+  document.querySelector("#drop-text").textContent = t("dropText");
+  refs.chooseButton.textContent = t("chooseFile");
+  refs.clearButton.textContent = t("clear");
+  document.querySelector("#pill-format-label").textContent = t("formatLabel");
+  document.querySelector("#pill-format-value").textContent = t("formatValue");
+  document.querySelector("#pill-privacy-label").textContent = t("privacyLabel");
+  document.querySelector("#pill-privacy-value").textContent = t("privacyValue");
+  document.querySelector("#status-label").textContent = t("readingStatus");
+  document.querySelector("#model-label").textContent = t("model");
+  document.querySelector("#count-label").textContent = t("count");
+  document.querySelector("#compatibility-label").textContent = t("compatibility");
+  document.querySelector("#file-label").textContent = t("selectedFile");
+  document.querySelector("#debug-label").textContent = t("debug");
+  document.querySelector("#debug-caption").textContent = t("debugCaption");
+  document.querySelector("#feedback-label").textContent = t("feedback");
+  document.querySelector("#feedback-title").textContent = t("feedbackTitle");
+  document.querySelector("#feedback-copy").textContent = t("feedbackCopy");
+  document.querySelector("#tester-name-label").textContent = t("testerName");
+  document.querySelector("#tester-name-input").placeholder = t("testerNamePlaceholder");
+  document.querySelector("#reply-email-label").textContent = t("replyEmail");
+  document.querySelector("#reply-email-input").placeholder = t("replyEmailPlaceholder");
+  document.querySelector("#camera-model-user-label").textContent = t("userCameraModel");
+  document.querySelector("#camera-model-user-input").placeholder = t("userCameraModelPlaceholder");
+  document.querySelector("#browser-device-label").textContent = t("browserDevice");
+  document.querySelector("#browser-device-input").placeholder = t("browserDevicePlaceholder");
+  document.querySelector("#test-outcome-label").textContent = t("testOutcome");
+  document.querySelector("#count-accuracy-label").textContent = t("countAccuracy");
+  document.querySelector("#notes-label").textContent = t("notes");
+  document.querySelector("#notes-input").placeholder = t("notesPlaceholder");
+  refs.feedbackSubmit.textContent = t("sendFeedback");
+
+  const selects = refs.feedbackForm.querySelectorAll("select");
+  const outcomeOptions = selects[0].options;
+  outcomeOptions[0].textContent = t("selectOption");
+  outcomeOptions[1].textContent = t("outcomeOkModelCount");
+  outcomeOptions[2].textContent = t("outcomeOkModelMissing");
+  outcomeOptions[3].textContent = t("outcomeWrongModel");
+  outcomeOptions[4].textContent = t("outcomeWrongCount");
+  outcomeOptions[5].textContent = t("outcomeRuntimeError");
+  outcomeOptions[6].textContent = t("outcomeOther");
+  const accuracyOptions = selects[1].options;
+  accuracyOptions[0].textContent = t("selectOption");
+  accuracyOptions[1].textContent = t("yes");
+  accuracyOptions[2].textContent = t("no");
+  accuracyOptions[3].textContent = t("notSure");
+  accuracyOptions[4].textContent = t("notAvailable");
+
+  lastAnalysisSnapshot.runtimeOrigin = t("runtimeOrigin");
+  if (lastAnalysisSnapshot.file === translations.it.noFile || lastAnalysisSnapshot.file === translations.en.noFile) {
+    lastAnalysisSnapshot.file = t("noFile");
+  }
+
+  if (currentViewState === "ready") {
+    refs.statusValue.textContent = t("ready");
+    refs.statusNote.textContent = t("readyNote");
+    refs.fileValue.textContent = t("noFile");
+    refs.debugOutput.textContent = t("noDebug");
+    refs.feedbackStatus.textContent = t("firstSendNote");
+  } else if (currentViewState === "invalidFile") {
+    refs.statusValue.textContent = t("invalidFile");
+    refs.statusNote.textContent = t("invalidFileNote");
+  } else if (currentViewState === "analyzing") {
+    refs.statusValue.textContent = t("analyzing");
+    refs.statusNote.textContent = t("analyzingNote");
+    refs.modelValue.textContent = t("analyzing");
+    refs.countValue.textContent = t("analyzingCount");
+    refs.compatibilityValue.textContent = t("checking");
+    refs.debugOutput.textContent = t("analyzing");
+  } else if (currentViewState === "error") {
+    refs.statusValue.textContent = t("readError");
+    refs.statusNote.textContent = lastErrorMessage;
+    refs.modelValue.textContent = t("unavailableData");
+    refs.countValue.textContent = t("unavailableData");
+    refs.compatibilityValue.textContent = t("verificationIncomplete");
+  } else if (currentViewState === "success") {
+    refs.statusValue.textContent = lastAnalysisSnapshot.status;
+  }
+
+  if (runtimeReady) {
+    refs.runtimeNote.textContent = t("runtimeReady");
+    refs.runtimeNote.className = "privacy-note";
+  } else if (runtimeFailed) {
+    refs.runtimeNote.textContent = t("runtimeUnavailable");
+    refs.runtimeNote.className = "privacy-note is-danger";
+  } else {
+    refs.runtimeNote.textContent = t("runtimeLoading");
+    refs.runtimeNote.className = "privacy-note";
+  }
+
+  syncFeedbackContext();
 }
