@@ -92,6 +92,7 @@ const translations = {
     no: "No",
     notSure: "Non sono sicuro",
     notAvailable: "Dato non disponibile",
+    notPresentInFile: "non presente in questo file",
     notes: "Note utili",
     notesPlaceholder:
       "Scrivi cosa ha funzionato, cosa non ha funzionato, se il count corrisponde, se il modello è corretto, eventuali errori o comportamenti strani.",
@@ -145,6 +146,7 @@ const translations = {
     simplifiedMap: "Mappa chiavi semplificate:",
     fullRecord: "Record ExifTool completo:",
     primaryCountSource: "sorgente count principale",
+    primaryCountSummary: "COUNT principale derivato da {source}",
     separateCounts: "Conteggi distinti:",
     shutterCountLine: "ShutterCount",
     exposureCountLine: "ExposureCount",
@@ -211,6 +213,7 @@ const translations = {
     no: "No",
     notSure: "Not sure",
     notAvailable: "Data not available",
+    notPresentInFile: "not present in this file",
     notes: "Useful notes",
     notesPlaceholder:
       "Describe what worked, what did not work, whether the count matches, whether the model is correct, and any errors or unusual behavior.",
@@ -264,6 +267,7 @@ const translations = {
     simplifiedMap: "Simplified key map:",
     fullRecord: "Full ExifTool record:",
     primaryCountSource: "primary count source",
+    primaryCountSummary: "Primary COUNT derived from {source}",
     separateCounts: "Separate counters:",
     shutterCountLine: "ShutterCount",
     exposureCountLine: "ExposureCount",
@@ -756,19 +760,19 @@ function extractCameraInfo(record) {
   const rawShutterCount = pickFirstValue(shutterCountSources);
   const rawExposureCount = pickFirstValue(exposureCountSources);
   const shutterCount =
-    rawShutterCount == null || rawShutterCount === "" ? t("unavailableData") : String(rawShutterCount);
+    rawShutterCount == null || rawShutterCount === "" ? t("notPresentInFile") : String(rawShutterCount);
   const exposureCount =
-    rawExposureCount == null || rawExposureCount === "" ? t("unavailableData") : String(rawExposureCount);
+    rawExposureCount == null || rawExposureCount === "" ? t("notPresentInFile") : String(rawExposureCount);
   const primaryCountSource =
-    shutterCount !== t("unavailableData")
+    shutterCount !== t("notPresentInFile")
       ? "ShutterCount"
-      : exposureCount !== t("unavailableData")
+      : exposureCount !== t("notPresentInFile")
         ? "ExposureCount"
         : null;
   const normalizedCount = primaryCountSource === "ShutterCount" ? shutterCount : primaryCountSource === "ExposureCount" ? exposureCount : t("unavailableData");
   const countsDiffer =
-    shutterCount !== t("unavailableData") &&
-    exposureCount !== t("unavailableData") &&
+    shutterCount !== t("notPresentInFile") &&
+    exposureCount !== t("notPresentInFile") &&
     shutterCount !== exposureCount;
 
   const isRSeries = normalizedModel !== t("modelNotDetected") && isCanonRSeriesModel(normalizedModel);
@@ -863,6 +867,7 @@ function formatDebugText(file, record, info, errorMessage = null) {
     `- ${t("testedModel")}: ${info.isTested ? t("yesShort") : t("noShort")}`,
     `- ${t("compatibilityLine")}: ${info.compatibility}`,
     `- ${t("primaryCountSource")}: ${info.primaryCountSource ?? "n/d"}`,
+    `- ${t("primaryCountSummary", { source: info.primaryCountSource ?? "n/d" })}`,
     "",
     t("separateCounts"),
     `- ${t("shutterCountLine")}: ${info.shutterCount}`,
