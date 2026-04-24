@@ -25,7 +25,8 @@ const MODEL_ALIASES = new Map([
 ]);
 
 const MODEL_SIMPLE_KEYS = ["model", "cameramodelname"];
-const COUNT_SIMPLE_KEYS = ["shuttercount", "exposurecount", "shuttercounter", "actuationcount"];
+const SHUTTER_COUNT_SIMPLE_KEYS = ["shuttercount", "shuttercounter"];
+const EXPOSURE_COUNT_SIMPLE_KEYS = ["exposurecount", "actuationcount"];
 const LOCAL_WASM_URL = new URL(
   "./vendor/@6over3/zeroperl-ts/dist/esm/zeroperl.wasm",
   window.location.href,
@@ -138,8 +139,15 @@ const translations = {
     compatibilityLine: "compatibilità",
     foundModelKeys: "Chiavi modello trovate:",
     foundCountKeys: "Chiavi shutter count trovate:",
+    foundExposureKeys: "Chiavi exposure count trovate:",
     simplifiedMap: "Mappa chiavi semplificate:",
     fullRecord: "Record ExifTool completo:",
+    primaryCountSource: "sorgente count principale",
+    separateCounts: "Conteggi distinti:",
+    shutterCountLine: "ShutterCount",
+    exposureCountLine: "ExposureCount",
+    countsMatch: "coincidono",
+    countsDiffer: "differiscono",
     none: "nessuna",
     yesShort: "si",
     noShort: "no",
@@ -248,8 +256,15 @@ const translations = {
     compatibilityLine: "compatibility",
     foundModelKeys: "Detected model keys:",
     foundCountKeys: "Detected shutter count keys:",
+    foundExposureKeys: "Detected exposure count keys:",
     simplifiedMap: "Simplified key map:",
     fullRecord: "Full ExifTool record:",
+    primaryCountSource: "primary count source",
+    separateCounts: "Separate counters:",
+    shutterCountLine: "ShutterCount",
+    exposureCountLine: "ExposureCount",
+    countsMatch: "match",
+    countsDiffer: "differ",
     none: "none",
     yesShort: "yes",
     noShort: "no",
@@ -711,13 +726,28 @@ function pickFirstValue(fields) {
 function extractCameraInfo(record) {
   const simpleRecord = buildSimpleRecord(record);
   const modelSources = collectSources(simpleRecord, MODEL_SIMPLE_KEYS);
-  const countSources = collectSources(simpleRecord, COUNT_SIMPLE_KEYS);
+  const shutterCountSources = collectSources(simpleRecord, SHUTTER_COUNT_SIMPLE_KEYS);
+  const exposureCountSources = collectSources(simpleRecord, EXPOSURE_COUNT_SIMPLE_KEYS);
 
   const rawModel = pickFirstValue(modelSources);
   const normalizedModel = normalizeModelName(rawModel == null ? null : String(rawModel));
-  const rawCount = pickFirstValue(countSources);
-  const count = rawCount == null || rawCount === "" ? "dato non disponibile" : String(rawCount);
-  const normalizedCount = rawCount == null || rawCount === "" ? t("unavailableData") : String(rawCount);
+  const rawShutterCount = pickFirstValue(shutterCountSources);
+  const rawExposureCount = pickFirstValue(exposureCountSources);
+  const shutterCount =
+    rawShutterCount == null || rawShutterCount === "" ? t("unavailableData") : String(rawShutterCount);
+  const exposureCount =
+    rawExposureCount == null || rawExposureCount === "" ? t("unavailableData") : String(rawExposureCount);
+  const primaryCountSource =
+    shutterCount !== t("unavailableData")
+      ? "ShutterCount"
+      : exposureCount !== t("unavailableData")
+        ? "ExposureCount"
+        : null;
+  const normalizedCount = primaryCountSource === "ShutterCount" ? shutterCount : primaryCountSource === "ExposureCount" ? exposureCount : t("unavailableData");
+  const countsDiffer =
+    shutterCount !== t("unavailableData") &&
+    exposureCount !== t("unavailableData") &&
+    shutterCount !== exposureCount;
 
   const isRSeries = normalizedModel !== t("modelNotDetected") && isCanonRSeriesModel(normalizedModel);
   const isTested = TESTED_MODELS.has(normalizedModel);
@@ -742,12 +772,18 @@ function extractCameraInfo(record) {
     model: normalizedModel,
     rawModel: rawModel == null ? null : String(rawModel),
     count: normalizedCount,
+    shutterCount,
+    exposureCount,
+    primaryCountSource,
+    countsDiffer,
     compatibility,
     status,
     isRSeries,
     isTested,
     modelSources,
-    countSources,
+    countSources: shutterCountSources,
+    shutterCountSources,
+    exposureCountSources,
     simpleRecord,
   };
 }
@@ -804,6 +840,12 @@ function formatDebugText(file, record, info, errorMessage = null) {
     `- ${t("rSeries")}: ${info.isRSeries ? t("yesShort") : t("noShort")}`,
     `- ${t("testedModel")}: ${info.isTested ? t("yesShort") : t("noShort")}`,
     `- ${t("compatibilityLine")}: ${info.compatibility}`,
+    `- ${t("primaryCountSource")}: ${info.primaryCountSource ?? "n/d"}`,
+    "",
+    t("separateCounts"),
+    `- ${t("shutterCountLine")}: ${info.shutterCount}`,
+    `- ${t("exposureCountLine")}: ${info.exposureCount}`,
+    `- ${info.countsDiffer ? t("countsDiffer") : t("countsMatch")}`,
     "",
     t("foundModelKeys"),
     ...(info.modelSources.length
@@ -811,8 +853,13 @@ function formatDebugText(file, record, info, errorMessage = null) {
       : [`- ${t("none")}`]),
     "",
     t("foundCountKeys"),
-    ...(info.countSources.length
-      ? info.countSources.map((field) => `- ${field.key}: ${String(field.value)}`)
+    ...(info.shutterCountSources.length
+      ? info.shutterCountSources.map((field) => `- ${field.key}: ${String(field.value)}`)
+      : [`- ${t("none")}`]),
+    "",
+    t("foundExposureKeys"),
+    ...(info.exposureCountSources.length
+      ? info.exposureCountSources.map((field) => `- ${field.key}: ${String(field.value)}`)
       : [`- ${t("none")}`]),
     "",
     t("simplifiedMap"),
