@@ -89,43 +89,15 @@ const MAKE_SIMPLE_KEYS = ["make"];
 const SHUTTER_COUNT_SIMPLE_KEYS = ["shuttercount", "shuttercounter"];
 const FILE_TYPE_REGISTRY = new Map([
   ["cr3", { brand: "Canon", format: "CR3", parserId: "canon-cr3", confidence: "active" }],
-  ["cr2", { brand: "Canon", format: "CR2", parserId: "canon-cr2", confidence: "planned" }],
-  ["nef", { brand: "Nikon", format: "NEF", parserId: "nikon-nef", confidence: "planned" }],
-  ["arw", { brand: "Sony", format: "ARW", parserId: "sony-arw", confidence: "planned" }],
-  ["dng", { brand: "Sony", format: "DNG", parserId: "sony-dng", confidence: "planned" }],
-  ["raf", { brand: "Fujifilm", format: "RAF", parserId: "fujifilm-raf", confidence: "planned" }],
-  ["orf", { brand: "Olympus / OM System", format: "ORF", parserId: "olympus-orf", confidence: "planned" }],
-  ["rw2", { brand: "Panasonic", format: "RW2", parserId: "panasonic-rw2", confidence: "planned" }],
-  ["jpg", { brand: "Generic", format: "JPEG", parserId: "jpeg-reference", confidence: "planned" }],
-  ["jpeg", { brand: "Generic", format: "JPEG", parserId: "jpeg-reference", confidence: "planned" }],
 ]);
 const SUPPORT_MATRIX = [
   {
     brand: "Canon",
     groups: [
+      { status: "active", models: ["Serie supportata: EOS R5 / R6 / R6 Mark II / R8 / R50"] },
       { status: "active", models: ["EOS R5", "EOS R6", "EOS R6 Mark II", "EOS R8", "EOS R50"] },
-      { status: "research", models: ["EOS R", "EOS RP", "EOS R3", "EOS R5 Mark II", "EOS R1", "EOS R6 Mark III", "EOS R7", "EOS R10", "EOS R50 V", "EOS R100"] },
+      { status: "research", models: ["Fuori supporto web: EOS R / RP / R3 / R5 Mark II / R1 / R6 Mark III / R7 / R10 / R50 V / R100"] },
     ],
-  },
-  {
-    brand: "Nikon",
-    groups: [{ status: "planned", models: ["NEF parser in preparazione"] }],
-  },
-  {
-    brand: "Sony",
-    groups: [{ status: "planned", models: ["ARW / DNG parser in preparazione"] }],
-  },
-  {
-    brand: "Fujifilm",
-    groups: [{ status: "planned", models: ["RAF parser in preparazione"] }],
-  },
-  {
-    brand: "Olympus / OM System",
-    groups: [{ status: "unavailable", models: ["Nessun count RAW affidabile confermato"] }],
-  },
-  {
-    brand: "Panasonic",
-    groups: [{ status: "unavailable", models: ["Nessun shutter count confermato nei RAW RW2"] }],
   },
 ];
 const FILE_PICKER_ACCEPT = Array.from(FILE_TYPE_REGISTRY.keys())
@@ -146,10 +118,10 @@ const translations = {
     chooseFile: "Seleziona file",
     clear: "Pulisci",
     formatLabel: "Formato",
-    formatValue: "RAW multi-brand",
+    formatValue: "Canon CR3",
     privacyLabel: "Privacy",
     privacyValue: "elaborazione nel browser",
-    dropTitle: "Trascina qui un file RAW",
+    dropTitle: "Trascina qui un file CR3 Canon",
     dropText:
       "Oppure usa il pulsante di selezione. Questa build web e' pensata solo per Canon CR3 serie R con supporto confermato su EOS R5, R6, R6 Mark II, R8 e R50.",
     readingStatus: "STATO LETTURA",
@@ -166,9 +138,9 @@ const translations = {
     selectedFile: "FILE SELEZIONATO",
     shutterCountCard: "SHUTTER COUNT",
     supportMatrix: "SUPPORTO MODELLI",
-    supportMatrixTitle: "Compatibilita per marca e modello",
+    supportMatrixTitle: "Serie Canon EOS R supportate",
     supportMatrixCopy:
-      "Questa pagina mostra solo i modelli Canon EOS R che funzionano davvero in questa build web e quelli che restano fuori supporto.",
+      "In testa trovi i soli modelli che funzionano davvero in questa build web. Sotto restano visibili i modelli serie R oggi fuori supporto.",
     supportActive: "Attivo",
     supportTentative: "In verifica",
     supportPlanned: "Pianificato",
@@ -188,7 +160,7 @@ const translations = {
     replyEmail: "Email",
     replyEmailPlaceholder: "Per eventuale risposta",
     userCameraModel: "Modello fotocamera usato",
-    userCameraModelPlaceholder: "Es. Canon EOS R6 Mark II, Nikon Z8, Sony A7 IV",
+    userCameraModelPlaceholder: "Es. Canon EOS R6 Mark II",
     browserDevice: "Browser / dispositivo",
     browserDevicePlaceholder: "Es. Safari su MacBook Air M2",
     testOutcome: "Esito del test",
@@ -215,7 +187,7 @@ const translations = {
     sent: "Feedback inviato. Controlla la mail di attivazione del form se questo è il primo invio.",
     sendFailed: "Invio non riuscito",
     invalidFile: "File non valido",
-    invalidFileNote: "Trascina un RAW supportato o un file di riferimento valido.",
+    invalidFileNote: "Trascina un file Canon CR3 valido.",
     analyzing: "Analisi in corso…",
     analyzingCount: "Analisi in corso…",
     checking: "Verifica in corso…",
@@ -227,7 +199,7 @@ const translations = {
     parserConfidenceLine: "stato parser",
     parserPlannedStatus: "Parser non ancora attivo",
     parserPlannedNote:
-      "Formato riconosciuto: {brand} {format}. L'architettura multi-brand e' pronta, ma questo parser non e' ancora attivo in questa build.",
+      "Formato riconosciuto: {brand} {format}. Questa build web e' limitata a Canon CR3 serie R supportati.",
     unavailableData: "dato non disponibile",
     verificationIncomplete: "verifica non completata",
     readError: "Errore di lettura",
@@ -301,10 +273,10 @@ const translations = {
     chooseFile: "Choose file",
     clear: "Clear",
     formatLabel: "Format",
-    formatValue: "Multi-brand RAW",
+    formatValue: "Canon CR3",
     privacyLabel: "Privacy",
     privacyValue: "processed in browser",
-    dropTitle: "Drag a RAW file here",
+    dropTitle: "Drag a Canon CR3 file here",
     dropText:
       "Or use the file picker. This web build is limited to Canon EOS R CR3 files with confirmed support on EOS R5, R6, R6 Mark II, R8, and R50.",
     readingStatus: "READ STATUS",
@@ -320,9 +292,9 @@ const translations = {
     selectedFile: "SELECTED FILE",
     shutterCountCard: "SHUTTER COUNT",
     supportMatrix: "MODEL SUPPORT",
-    supportMatrixTitle: "Brand and model compatibility",
+    supportMatrixTitle: "Supported Canon EOS R series",
     supportMatrixCopy:
-      "This page lists only the Canon EOS R models that really work in this web build and the ones that are currently outside support.",
+      "At the top you can see the only models that really work in this web build. Below are the EOS R bodies that are currently outside support.",
     supportActive: "Active",
     supportTentative: "Under review",
     supportPlanned: "Planned",
@@ -342,7 +314,7 @@ const translations = {
     replyEmail: "Email",
     replyEmailPlaceholder: "For a possible reply",
     userCameraModel: "Camera model used",
-    userCameraModelPlaceholder: "E.g. Canon EOS R6 Mark II, Nikon Z8, Sony A7 IV",
+    userCameraModelPlaceholder: "E.g. Canon EOS R6 Mark II",
     browserDevice: "Browser / device",
     browserDevicePlaceholder: "E.g. Safari on MacBook Air M2",
     testOutcome: "Test outcome",
@@ -369,7 +341,7 @@ const translations = {
     sent: "Feedback sent. Check the activation email for the form if this is the first submission.",
     sendFailed: "Sending failed",
     invalidFile: "Invalid file",
-    invalidFileNote: "Drag a supported RAW file or a valid reference file.",
+    invalidFileNote: "Drag a valid Canon CR3 file.",
     analyzing: "Analyzing…",
     analyzingCount: "Analyzing…",
     checking: "Checking…",
@@ -381,7 +353,7 @@ const translations = {
     parserConfidenceLine: "parser state",
     parserPlannedStatus: "Parser not active yet",
     parserPlannedNote:
-      "Recognized format: {brand} {format}. The multi-brand architecture is ready, but this parser is not active in this build yet.",
+      "Recognized format: {brand} {format}. This web build is limited to supported Canon EOS R CR3 files.",
     unavailableData: "data not available",
     verificationIncomplete: "verification not completed",
     readError: "Read error",
