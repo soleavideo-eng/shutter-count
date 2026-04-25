@@ -450,6 +450,17 @@ app.innerHTML = `
         <p class="hero-subtitle" id="hero-subtitle">${t("subtitle")}</p>
       </div>
 
+      <section class="panel support-panel">
+        <div class="support-header">
+          <div>
+            <p class="eyebrow" id="support-label">${t("supportMatrix")}</p>
+            <h2 class="support-title" id="support-title">${t("supportMatrixTitle")}</h2>
+            <p class="support-copy" id="support-copy">${t("supportMatrixCopy")}</p>
+          </div>
+        </div>
+        <div class="support-grid" id="support-grid"></div>
+      </section>
+
       <div class="hero-grid">
         <section class="panel drop-panel">
           <div class="drop-zone" id="drop-zone">
@@ -500,17 +511,6 @@ app.innerHTML = `
         <p class="eyebrow" id="shutter-count-label">${t("shutterCountCard")}</p>
         <p class="result-value subtle" id="shutter-count-value">—</p>
       </article>
-    </section>
-
-    <section class="panel support-panel">
-      <div class="support-header">
-        <div>
-          <p class="eyebrow" id="support-label">${t("supportMatrix")}</p>
-          <h2 class="support-title" id="support-title">${t("supportMatrixTitle")}</h2>
-          <p class="support-copy" id="support-copy">${t("supportMatrixCopy")}</p>
-        </div>
-      </div>
-      <div class="support-grid" id="support-grid"></div>
     </section>
 
     <details class="panel debug-panel" id="debug-panel">
