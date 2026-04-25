@@ -13,18 +13,18 @@ const MODEL_ROUTING = new Map([
   ["Canon EOS R6 Mark II", { tier: 1, offset: 0x0d29, width: 4, kind: "lifetime" }],
   ["Canon EOS R8", { tier: 1, offset: 0x0d29, width: 4, kind: "lifetime" }],
   ["Canon EOS R50", { tier: 1, offset: 0x0d29, width: 4, kind: "lifetime" }],
-  ["Canon EOS R3", { tier: 2, offset: 0x0af1, width: 4, kind: "lifetime" }],
-  ["Canon EOS R5 Mark II", { tier: 2, offset: 0x069c, width: 4, kind: "lifetime" }],
-  ["Canon EOS R1", { tier: 2, offset: 0x086d, width: 2, kind: "imageCount" }],
-  ["Canon EOS R6 Mark III", { tier: 2, offset: 0x086d, width: 2, kind: "imageCount" }],
-  ["Canon EOS R50 V", { tier: 2, offset: 0x086d, width: 2, kind: "imageCount" }],
 ]);
 
 const UNSUPPORTED_MODELS = new Set([
   "Canon EOS R",
   "Canon EOS RP",
+  "Canon EOS R3",
+  "Canon EOS R5 Mark II",
+  "Canon EOS R1",
+  "Canon EOS R6 Mark III",
   "Canon EOS R7",
   "Canon EOS R10",
+  "Canon EOS R50 V",
   "Canon EOS R100",
 ]);
 
@@ -104,8 +104,7 @@ const SUPPORT_MATRIX = [
     brand: "Canon",
     groups: [
       { status: "active", models: ["EOS R5", "EOS R6", "EOS R6 Mark II", "EOS R8", "EOS R50"] },
-      { status: "tentative", models: ["EOS R3", "EOS R5 Mark II", "EOS R1", "EOS R6 Mark III", "EOS R50 V"] },
-      { status: "research", models: ["EOS R", "EOS RP", "EOS R7", "EOS R10", "EOS R100"] },
+      { status: "research", models: ["EOS R", "EOS RP", "EOS R3", "EOS R5 Mark II", "EOS R1", "EOS R6 Mark III", "EOS R7", "EOS R10", "EOS R50 V", "EOS R100"] },
     ],
   },
   {
@@ -152,7 +151,7 @@ const translations = {
     privacyValue: "elaborazione nel browser",
     dropTitle: "Trascina qui un file RAW",
     dropText:
-      "Oppure usa il pulsante di selezione. L'analisi parte subito e mostra modello, shutter count, stato di lettura, compatibilità e file selezionato. L'architettura è pronta per Canon, Nikon, Sony, Fujifilm, Olympus / OM System e Panasonic.",
+      "Oppure usa il pulsante di selezione. Questa build web e' pensata solo per Canon CR3 serie R con supporto confermato su EOS R5, R6, R6 Mark II, R8 e R50.",
     readingStatus: "STATO LETTURA",
     ready: "Pronto",
     readyNote:
@@ -169,7 +168,7 @@ const translations = {
     supportMatrix: "SUPPORTO MODELLI",
     supportMatrixTitle: "Compatibilita per marca e modello",
     supportMatrixCopy:
-      "Panoramica rapida dei parser attivi, dei modelli in verifica e dei formati gia pianificati. Utile prima di fare test o condividere il link.",
+      "Questa pagina mostra solo i modelli Canon EOS R che funzionano davvero in questa build web e quelli che restano fuori supporto.",
     supportActive: "Attivo",
     supportTentative: "In verifica",
     supportPlanned: "Pianificato",
@@ -257,7 +256,7 @@ const translations = {
     imageCountModelNote:
       "Modello rilevato: {model}. Offset {offset} letto come uint16. Potrebbe rappresentare ImageCount e non il lifetime shutter count; può azzerarsi dopo una formattazione.",
     unsupportedRModelNote:
-      "Modello rilevato: {model}. Questo modello non e' ancora supportato in questa build. Se vuoi, invia un file campione per la ricerca.",
+      "Modello rilevato: {model}. Questa build web supporta solo EOS R5, R6, R6 Mark II, R8 e R50.",
     unexpectedOffsetValue:
       "Impossibile leggere lo shutter count: valore inatteso all'offset {offset}. Byte raw: {bytes}.",
     missingOffsetBytes:
@@ -307,7 +306,7 @@ const translations = {
     privacyValue: "processed in browser",
     dropTitle: "Drag a RAW file here",
     dropText:
-      "Or use the file picker. Analysis starts immediately and shows model, shutter count, read status, compatibility, and selected file. The architecture is ready for Canon, Nikon, Sony, Fujifilm, Olympus / OM System and Panasonic.",
+      "Or use the file picker. This web build is limited to Canon EOS R CR3 files with confirmed support on EOS R5, R6, R6 Mark II, R8, and R50.",
     readingStatus: "READ STATUS",
     ready: "Ready",
     readyNote: "Drag a RAW file or choose it manually. ExifTool runs directly in the browser.",
@@ -323,7 +322,7 @@ const translations = {
     supportMatrix: "MODEL SUPPORT",
     supportMatrixTitle: "Brand and model compatibility",
     supportMatrixCopy:
-      "Quick overview of active parsers, models under verification, and already planned formats. Useful before testing or sharing the app.",
+      "This page lists only the Canon EOS R models that really work in this web build and the ones that are currently outside support.",
     supportActive: "Active",
     supportTentative: "Under review",
     supportPlanned: "Planned",
@@ -411,7 +410,7 @@ const translations = {
     imageCountModelNote:
       "Detected model: {model}. Offset {offset} is read as uint16. It may represent ImageCount rather than lifetime shutter count and may reset after a card format.",
     unsupportedRModelNote:
-      "Detected model: {model}. This model is not supported in this build yet. Please share a sample file for research.",
+      "Detected model: {model}. This web build currently supports only EOS R5, R6, R6 Mark II, R8, and R50.",
     unexpectedOffsetValue:
       "Could not read shutter count: unexpected value at offset {offset}. Raw bytes: {bytes}.",
     missingOffsetBytes:
